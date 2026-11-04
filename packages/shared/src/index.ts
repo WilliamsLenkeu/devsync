@@ -35,6 +35,7 @@ export const ACTION_MIN_ROLE = {
   'task:read': 'VIEWER',
   'task:write': 'MEMBER',
   'comment:write': 'MEMBER',
+  'activity:read': 'VIEWER',
   'token:manage': 'MEMBER',
 } as const satisfies Record<string, WorkspaceRole>;
 
@@ -54,3 +55,13 @@ export const API_TOKEN_SCOPES = [
 ] as const;
 export const apiTokenScopeSchema = z.enum(API_TOKEN_SCOPES);
 export type ApiTokenScope = z.infer<typeof apiTokenScopeSchema>;
+
+/** Scope an API token needs for an action. Actions absent here are never available to tokens. */
+export const ACTION_SCOPE: Partial<Record<Action, ApiTokenScope>> = {
+  'workspace:read': 'workspaces:read',
+  'project:read': 'projects:read',
+  'task:read': 'tasks:read',
+  'task:write': 'tasks:write',
+  'comment:write': 'comments:write',
+  'activity:read': 'activity:read',
+};
