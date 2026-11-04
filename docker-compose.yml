@@ -1,0 +1,16 @@
+name: devsync
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-devsync}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devsync}
+      POSTGRES_DB: ${POSTGRES_DB:-devsync}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - devsync-db:/var/lib/postgresql/data
+
+volumes:
+  devsync-db:
