@@ -27,3 +27,14 @@ Une seule `tsconfig.base.json` + `eslint.config.js` √† la racine suffisent. Un p
 - `Task.position` en `Float` (insertion par milieu) ; r√©√©quilibrage si l'√©cart devient trop petit (ponytail : suffisant pour des colonnes < quelques milliers de t√¢ches).
 - `Session` : une ligne par refresh token, `familyId` pour d√©tecter la r√©utilisation d'un token d√©j√† rot√©.
 - Pas d'unicit√© partielle des invitations PENDING en base (non exprimable dans Prisma) : v√©rifi√©e en transaction c√¥t√© service.
+
+## D6 ó Backend (phase 2)
+
+- RÈponses : succËs `{ data }`, erreurs `{ error: { code, message, details? } }` ; handlers d'erreur posÈs AVANT l'enregistrement des modules (un `register` attendu copie les handlers dans le scope enfant).
+- Authz unique : `authorize()` (non-membre ? 404, rÙle insuffisant ? 403, token ? scope + workspace). Le service `modules/tasks/service.ts` est partagÈ par les routes web et `/agent/*`.
+- Dernier OWNER protÈgÈ (409) ; un ADMIN ne peut pas toucher un OWNER (403). Invitation expirÈe/dÈj‡ traitÈe ? 409, mauvais email ? 403.
+- AssignÈ non membre du projet ? 400. `TASK_DELETED` n'a pas de `taskId` (sinon supprimÈ en cascade avec la t‚che).
+- `Task.position` : Float, pas de 1024, insertion au milieu, rÈÈquilibrage si Ècart < 1e-6.
+- Dashboard : uniquement les projets ACTIVE ; `inProgress` = statut IN_PROGRESS seul.
+- Tokens API : `token:manage` exige MEMBER, donc un VIEWER ne peut pas crÈer de token. …vÈnements ‡ `audience` (notifications) livrÈs sans revÈrification d'appartenance (ponytail : une notification Èmise juste avant un retrait peut encore arriver).
+- Refresh token : rotation, rÈutilisation d'un token dÈj‡ rotÈ ? rÈvocation de toute la famille.

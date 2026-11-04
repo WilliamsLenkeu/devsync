@@ -1,0 +1,32 @@
+[23:04:36.685] INFO (26148): Server listening at http://127.0.0.1:3999
+[23:04:36.686] INFO (26148): Server listening at http://192.168.1.113:3999
+[23:04:39.749] INFO (26148): incoming request
+    reqId: "req-1"
+    req: {
+      "method": "GET",
+      "url": "/health",
+      "host": "localhost:3999",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 32312
+    }
+[23:04:39.765] INFO (26148): request completed
+    reqId: "req-1"
+    res: {
+      "statusCode": 200
+    }
+    responseTime: 14.880199999999604
+[23:04:40.173] INFO (26148): incoming request
+    reqId: "req-2"
+    req: {
+      "method": "GET",
+      "url": "/health/ready",
+      "host": "localhost:3999",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 32312
+    }
+[23:04:40.180] INFO (26148): request completed
+    reqId: "req-2"
+    res: {
+      "statusCode": 200
+    }
+    responseTime: 6.93080000000009

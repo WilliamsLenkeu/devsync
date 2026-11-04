@@ -12,13 +12,14 @@ export interface NotificationInput {
 
 /** Insert notifications inside the caller's transaction. Skip self-notifications at the call site. */
 export const createNotifications = (tx: Prisma.TransactionClient, inputs: NotificationInput[]) =>
-  Promise.all(
-    inputs.map((n) =>
-      tx.notification.create({
-        data: { userId: n.userId, workspaceId: n.workspaceId, type: n.type, data: n.data ?? {} },
-      }),
-    ),
-  );
+  tx.notification.createManyAndReturn({
+    data: inputs.map((n) => ({
+      userId: n.userId,
+      workspaceId: n.workspaceId,
+      type: n.type,
+      data: n.data ?? {},
+    })),
+  });
 
 /** Push freshly committed notifications to their recipients' sockets. Call AFTER the transaction commits. */
 export const publishNotifications = (

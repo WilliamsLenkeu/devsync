@@ -1,0 +1,144 @@
+import { UserMinus, UserPlus } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { ErrorState } from '@/components/states';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { UserAvatar } from '@/components/UserAvatar';
+import { errorMessage } from '@/lib/api';
+import type { ProjectMember } from '@/lib/types';
+import { useAddProjectMember, useProjectMembers, useRemoveProjectMember, useWorkspaceMembers } from './queries';
+
+export function ProjectMembers({
+  projectId,
+  workspaceId,
+  canManage,
+}: {
+  projectId: string;
+  workspaceId: string;
+  canManage: boolean;
+}) {
+  const members = useProjectMembers(projectId);
+  const candidates = useWorkspaceMembers(workspaceId, canManage);
+  const add = useAddProjectMember(projectId);
+  const remove = useRemoveProjectMember(projectId);
+  const [selectedUserId, setSelectedUserId] = useState<string>('');
+  const [toRemove, setToRemove] = useState<ProjectMember | null>(null);
+
+  const memberIds = new Set(members.data?.map((m) => m.userId));
+  const addable = (candidates.data ?? []).filter((m) => !memberIds.has(m.userId));
+
+  const onAdd = () =>
+    add.mutate(selectedUserId, {
+      onSuccess: () => {
+        toast.success('Member added to project');
+        setSelectedUserId('');
+      },
+      onError: (err) => toast.error(errorMessage(err)),
+    });
+
+  const onRemove = (member: ProjectMember) =>
+    remove.mutate(member.userId, {
+      onSuccess: () => toast.success(`${member.user.name} removed from project`),
+      onError: (err) => toast.error(errorMessage(err)),
+    });
+
+  return (
+    <section aria-labelledby="members-heading" className="h-fit rounded-xl border bg-card p-5">
+      <h2 id="members-heading" className="text-sm font-semibold">
+        Members
+      </h2>
+
+      {canManage && (
+        <div className="mt-4 grid gap-2">
+          <Label htmlFor="add-member">Add a workspace member</Label>
+          <div className="flex gap-2">
+            <Select value={selectedUserId} onValueChange={setSelectedUserId} disabled={addable.length === 0}>
+              <SelectTrigger id="add-member" className="min-w-0 flex-1">
+                <SelectValue placeholder={addable.length === 0 ? 'Everyone is in this project' : 'Select a member'} />
+              </SelectTrigger>
+              <SelectContent>
+                {addable.map((m) => (
+                  <SelectItem key={m.userId} value={m.userId}>
+                    {m.user.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button onClick={onAdd} disabled={!selectedUserId || add.isPending} aria-label="Add selected member">
+              <UserPlus aria-hidden />
+              Add
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4">
+        {members.isPending && (
+          <div className="space-y-3">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-8" />
+            ))}
+          </div>
+        )}
+        {members.isError && <ErrorState error={members.error} onRetry={() => void members.refetch()} />}
+        {members.data && (
+          <ul className="space-y-1">
+            {members.data.map((m) => (
+              <li key={m.userId} className="flex items-center gap-3 rounded-md px-1 py-1.5">
+                <UserAvatar user={{ name: m.user.name, avatarUrl: m.user.avatarUrl }} className="size-8" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{m.user.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{m.user.email}</p>
+                </div>
+                {canManage && (
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Remove ${m.user.name} from project`}
+                    onClick={() => setToRemove(m)}
+                  >
+                    <UserMinus aria-hidden />
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <AlertDialog open={toRemove !== null} onOpenChange={(open) => !open && setToRemove(null)}>
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove {toRemove?.user.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Their tasks in this project will be unassigned. They stay in the workspace.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (toRemove) onRemove(toRemove);
+              }}
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </section>
+  );
+}

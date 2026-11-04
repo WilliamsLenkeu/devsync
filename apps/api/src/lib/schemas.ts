@@ -22,4 +22,5 @@ export const userSchema = z.object({
   createdAt: dateTime,
 });
 
-export const idParams = (name: string) => z.object({ [name]: uuid });
+export const idParams = <K extends string>(name: K) =>
+  z.object({ [name]: uuid } as Record<K, typeof uuid>);
