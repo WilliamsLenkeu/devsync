@@ -1,27 +1,32 @@
 # AGENTS.md — DevSync
 
-Plateforme de collaboration pour équipes de dev (tâches Kanban, temps réel, API + MCP pour agents IA).
+Plateforme de collaboration pour équipes de dev (Kanban, temps réel, API + MCP pour agents IA).
 
 ## Structure
 
-- `apps/api` — Fastify + Prisma (PostgreSQL), REST + WebSocket
-- `apps/web` — React + Vite (phase 3)
-- `apps/mcp-server` — serveur MCP (phase 5)
-- `packages/shared` — enums, politique de rôles, scopes de tokens (source unique API/UI)
+- `apps/api` — Fastify + Prisma (PostgreSQL), REST + WebSocket + agent API
+- `apps/web` — React + Vite + shadcn/ui (SPA, proxy `/api` en dev)
+- `apps/mcp-server` — serveur MCP stdio (client REST de l'agent API) — voir son README
+- `packages/shared` — enums, `can()` / rôles, scopes de tokens (source unique API/UI)
+- `docs/api-contract.md` — contrat HTTP / WS (source de vérité)
+- `docs/decisions.md`, `docs/procedures.md`
 
 ## Commandes
 
-| Action                  | Commande                                      |
-| ----------------------- | --------------------------------------------- |
-| Installer               | `pnpm install`                                |
-| DB (wslc-compose)       | `pnpm db:up` / `pnpm db:down`                 |
-| Migrer                  | `pnpm --filter @devsync/api db:migrate`       |
-| Typecheck / lint / test | `pnpm typecheck` / `pnpm lint` / `pnpm test`  |
+| Action | Commande |
+| --- | --- |
+| Installer | `pnpm install` |
+| DB (wslc-compose) | `pnpm db:up` / `pnpm db:down` |
+| Migrer / seed | `pnpm --filter @devsync/api db:migrate` / `db:seed` |
+| Dev API / web | `pnpm --filter @devsync/api dev` · `pnpm --filter @devsync/web dev` |
+| MCP | `pnpm --filter @devsync/mcp-server start` (env `DEVSYNC_API_TOKEN`) |
+| Checks | `pnpm typecheck` · `pnpm lint` · `pnpm test` |
+| Build | `pnpm --filter @devsync/api build` · `pnpm --filter @devsync/web build` |
 
 ## Conventions
 
 - pnpm obligatoire, TypeScript strict, ESM.
-- Conteneurs : **wslc** (WSL Containers) via `wslc-compose` à la place de Docker. Pas de healthcheck ni de `depends_on: service_healthy` (non supportés).
-- Autorisation côté backend uniquement via `can()` de `@devsync/shared`.
-- Tests DB : `DATABASE_URL` requis, sinon les tests concernés sont ignorés.
-- Chaque décision significative → `docs/decisions.md`.
+- Conteneurs : **wslc** + `wslc-compose` (pas Docker sur cette machine). Pas de healthcheck.
+- Authz backend via `authorize()` / `can()` — jamais « cacher le bouton » seulement.
+- Formes API : `docs/api-contract.md`. Décisions : `docs/decisions.md`.
+- Démo seed : `ada@devsync.dev` / `lin@devsync.dev` (mdp `DEMO_PASSWORD` ou `devsync-demo-123`).
