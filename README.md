@@ -85,10 +85,9 @@ Plain Docker: same `docker-compose.yml` with `docker compose`.
 pnpm typecheck
 pnpm lint
 pnpm test                                 # unit + API injection (needs DB)
-pnpm --filter @devsync/web exec playwright install chromium
-# with API + web running:
-pnpm --filter @devsync/web e2e
 ```
+
+GUI smoke on this machine: run API + web, open `http://localhost:5173` (**localhost**, not `127.0.0.1` — must match `WEB_ORIGIN`), sign in with the demo accounts. Prefer **agent-desktop** for desktop QA (Playwright is optional and not required locally).
 
 ## API documentation
 
@@ -109,7 +108,13 @@ Create an API token in the web UI (**API tokens**), then see [`apps/mcp-server/R
 
 ## Screenshots
 
-> Add real captures under `docs/screenshots/` after a local run (landing, board, task sheet, dashboard). Placeholder until then.
+Real captures via **agent-desktop** (Chrome / Windows):
+
+![Landing](docs/screenshots/01-landing.png)
+
+![Dashboard](docs/screenshots/02-dashboard.png)
+
+![Kanban board](docs/screenshots/03-board.png)
 
 ## Roadmap
 
