@@ -14,9 +14,7 @@ export function RecentActivity({ activity }: { activity: Activity[] }) {
         ) : (
           <ul className="divide-y">
             {activity.map((item) => (
-              <li key={item.id} className="py-2.5">
-                <ActivityItem activity={item} />
-              </li>
+              <ActivityItem key={item.id} activity={item} />
             ))}
           </ul>
         )}

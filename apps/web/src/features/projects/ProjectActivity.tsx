@@ -24,11 +24,9 @@ export function ProjectActivity({ projectId }: { projectId: string }) {
 
   return (
     <div>
-      <ul className="divide-y rounded-xl border bg-card">
+      <ul className="divide-y rounded-xl border bg-card px-4">
         {items.map((item) => (
-          <li key={item.id} className="px-4 py-3">
-            <ActivityItem activity={item} />
-          </li>
+          <ActivityItem key={item.id} activity={item} />
         ))}
       </ul>
       {activity.hasNextPage && (

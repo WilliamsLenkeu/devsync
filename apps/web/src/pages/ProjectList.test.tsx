@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { can, type WorkspaceRole } from '@devsync/shared';
 import type { Action } from '@devsync/shared';
@@ -11,7 +11,7 @@ import { ProjectListPage } from './ProjectList';
 
 const mocks = vi.hoisted(() => ({
   role: 'MEMBER' as WorkspaceRole,
-  get: vi.fn<(path: string) => Promise<unknown>>(),
+  get: vi.fn<(path: string, params?: unknown) => Promise<unknown>>(),
   post: vi.fn<(path: string, body: unknown) => Promise<unknown>>(),
 }));
 
@@ -60,7 +60,7 @@ describe('ProjectListPage', () => {
     renderPage(<ProjectListPage />);
 
     expect(await screen.findByRole('heading', { name: 'Web app' })).toBeInTheDocument();
-    expect(mocks.get).toHaveBeenCalledWith('/workspaces/ws-1/projects');
+    expect(mocks.get).toHaveBeenCalledWith('/workspaces/ws-1/projects', expect.anything());
     expect(screen.queryByRole('button', { name: /new project/i })).not.toBeInTheDocument();
   });
 
@@ -70,17 +70,19 @@ describe('ProjectListPage', () => {
     mocks.post.mockResolvedValue({ ...project, id: 'p2', name: 'Dev Sync Web', identifier: 'DSW' });
 
     renderPage(<ProjectListPage />);
-    await user.click((await screen.findAllByRole('button', { name: /new project/i }))[0]!);
+    await user.click((await screen.findAllByRole('button', { name: /new project/i })) [0] as HTMLElement);
     const dialog = screen.getByRole('dialog');
     await user.type(within(dialog).getByLabelText('Name'), 'Dev Sync Web');
     expect(within(dialog).getByLabelText('Identifier')).toHaveValue('DSW');
 
     await user.click(within(dialog).getByRole('button', { name: 'Create project' }));
 
-    expect(mocks.post).toHaveBeenCalledWith('/workspaces/ws-1/projects', {
-      name: 'Dev Sync Web',
-      identifier: 'DSW',
-    });
+    await waitFor(() =>
+      expect(mocks.post).toHaveBeenCalledWith('/workspaces/ws-1/projects', {
+        name: 'Dev Sync Web',
+        identifier: 'DSW',
+      }),
+    );
   });
 
   it('shows an empty state with a create call-to-action when there are no projects', async () => {

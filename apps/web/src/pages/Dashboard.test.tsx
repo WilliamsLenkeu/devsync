@@ -9,7 +9,7 @@ import { DashboardPage } from './Dashboard';
 
 const mocks = vi.hoisted(() => ({
   role: 'MEMBER' as WorkspaceRole,
-  get: vi.fn<(path: string) => Promise<unknown>>(),
+  get: vi.fn<(path: string, params?: unknown) => Promise<unknown>>(),
 }));
 
 vi.mock('@/lib/workspace', () => ({
@@ -46,7 +46,7 @@ const populated: Dashboard = {
         status: 'IN_PROGRESS',
         priority: 'URGENT',
         position: 1,
-        dueDate: '2020-01-01T00:00:00.000Z',
+        dueDate: '2020-01-01T12:00:00.000Z',
         assignee: null,
         reporter: { id: 'u2', name: 'Ada', avatarUrl: null },
         labels: [],

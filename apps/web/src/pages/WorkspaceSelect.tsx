@@ -46,8 +46,9 @@ export function WorkspaceSelectPage() {
   const browsing = (state as { browse?: boolean } | null)?.browse === true;
 
   // Auto-open the workspace used last time, unless the user came here via "All workspaces".
-  if (!browsing && workspaces.length === 1 && invitations.length === 0 && getLastWorkspace() === workspaces[0].id) {
-    return <Navigate to={`/w/${workspaces[0].id}`} replace />;
+  const only = workspaces.length === 1 ? workspaces[0] : undefined;
+  if (!browsing && only && invitations.length === 0 && getLastWorkspace() === only.id) {
+    return <Navigate to={`/w/${only.id}`} replace />;
   }
 
   const error = workspacesQuery.error ?? invitationsQuery.error;
