@@ -1,4 +1,4 @@
-import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyReply } from 'fastify';
 import type { ApiTokenScope } from '@devsync/shared';
 import type { Config } from './config';
 import type { Db } from './db';
