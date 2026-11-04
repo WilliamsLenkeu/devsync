@@ -8,7 +8,9 @@ let config: ReturnType<typeof loadConfig>;
 try {
   config = loadConfig(process.env);
 } catch (error) {
-  process.stderr.write(`devsync-mcp: ${error instanceof Error ? error.message : 'invalid configuration'}\n`);
+  process.stderr.write(
+    `devsync-mcp: ${error instanceof Error ? error.message : 'invalid configuration'}\n`,
+  );
   process.exit(1);
 }
 

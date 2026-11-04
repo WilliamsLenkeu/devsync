@@ -19,13 +19,17 @@ describe('loadConfig', () => {
       apiUrl: 'http://localhost:3000',
       token: TOKEN,
     });
-    expect(loadConfig({ DEVSYNC_API_TOKEN: TOKEN, DEVSYNC_API_URL: 'https://api.x.io//' }).apiUrl).toBe(
-      'https://api.x.io',
-    );
+    expect(
+      loadConfig({ DEVSYNC_API_TOKEN: TOKEN, DEVSYNC_API_URL: 'https://api.x.io//' }).apiUrl,
+    ).toBe('https://api.x.io');
   });
 
   it('rejects non-http URLs', () => {
-    expect(() => loadConfig({ DEVSYNC_API_TOKEN: TOKEN, DEVSYNC_API_URL: 'ftp://x' })).toThrow(/http or https/);
-    expect(() => loadConfig({ DEVSYNC_API_TOKEN: TOKEN, DEVSYNC_API_URL: 'nope' })).toThrow(/not a valid URL/);
+    expect(() => loadConfig({ DEVSYNC_API_TOKEN: TOKEN, DEVSYNC_API_URL: 'ftp://x' })).toThrow(
+      /http or https/,
+    );
+    expect(() => loadConfig({ DEVSYNC_API_TOKEN: TOKEN, DEVSYNC_API_URL: 'nope' })).toThrow(
+      /not a valid URL/,
+    );
   });
 });

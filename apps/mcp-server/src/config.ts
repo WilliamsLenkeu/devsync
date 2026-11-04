@@ -8,7 +8,9 @@ export class ConfigError extends Error {}
 export function loadConfig(env: NodeJS.ProcessEnv): Config {
   const token = env.DEVSYNC_API_TOKEN?.trim() ?? '';
   if (!token) {
-    throw new ConfigError('DEVSYNC_API_TOKEN is missing (create a scoped token in the DevSync web UI, "API tokens").');
+    throw new ConfigError(
+      'DEVSYNC_API_TOKEN is missing (create a scoped token in the DevSync web UI, "API tokens").',
+    );
   }
   if (!token.startsWith('dsk_')) {
     throw new ConfigError("DEVSYNC_API_TOKEN is invalid: it must start with 'dsk_'.");

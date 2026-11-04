@@ -72,7 +72,13 @@ describe('tool routing', () => {
     query?: Record<string, string>;
     body?: unknown;
   }[] = [
-    { tool: 'list_workspaces', args: {}, data: [{ name: 'Acme', slug: 'acme', role: 'OWNER' }], method: 'GET', path: '/api/agent/workspaces' },
+    {
+      tool: 'list_workspaces',
+      args: {},
+      data: [{ name: 'Acme', slug: 'acme', role: 'OWNER' }],
+      method: 'GET',
+      path: '/api/agent/workspaces',
+    },
     { tool: 'list_projects', args: {}, data: [], method: 'GET', path: '/api/agent/projects' },
     {
       tool: 'list_tasks',
@@ -82,11 +88,22 @@ describe('tool routing', () => {
       path: `/api/agent/projects/${PROJECT}/tasks`,
       query: { status: 'TODO', priority: 'HIGH', assigneeId: USER, q: 'login' },
     },
-    { tool: 'get_task', args: { taskId: TASK }, data: TASK_DATA, method: 'GET', path: `/api/agent/tasks/${TASK}` },
+    {
+      tool: 'get_task',
+      args: { taskId: TASK },
+      data: TASK_DATA,
+      method: 'GET',
+      path: `/api/agent/tasks/${TASK}`,
+    },
     {
       tool: 'create_task',
       data: TASK_DATA,
-      args: { projectId: PROJECT, title: '  Fix login  ', priority: 'URGENT', labels: [{ name: 'bug' }] },
+      args: {
+        projectId: PROJECT,
+        title: '  Fix login  ',
+        priority: 'URGENT',
+        labels: [{ name: 'bug' }],
+      },
       method: 'POST',
       path: `/api/agent/projects/${PROJECT}/tasks`,
       body: { title: 'Fix login', priority: 'URGENT', labels: [{ name: 'bug' }] },
@@ -197,8 +214,14 @@ describe('API errors', () => {
     expect(r403.isError).toBe(true);
     expect(text(r403)).toBe('FORBIDDEN: Token lacks scope for task:write');
 
-    fake.reply = () => ({ status: 404, body: { error: { code: 'NOT_FOUND', message: 'Task not found' } } });
-    const r404 = (await mcp.callTool({ name: 'get_task', arguments: { taskId: TASK } })) as CallToolResult;
+    fake.reply = () => ({
+      status: 404,
+      body: { error: { code: 'NOT_FOUND', message: 'Task not found' } },
+    });
+    const r404 = (await mcp.callTool({
+      name: 'get_task',
+      arguments: { taskId: TASK },
+    })) as CallToolResult;
     expect(r404.isError).toBe(true);
     expect(text(r404)).toBe('NOT_FOUND: Task not found');
   });
@@ -209,7 +232,10 @@ describe('API errors', () => {
       status: 500,
       body: { error: { code: 'INTERNAL', message: `echo ${TOKEN}` } },
     });
-    const result = (await mcp.callTool({ name: 'list_workspaces', arguments: {} })) as CallToolResult;
+    const result = (await mcp.callTool({
+      name: 'list_workspaces',
+      arguments: {},
+    })) as CallToolResult;
     expect(result.isError).toBe(true);
     expect(JSON.stringify(result)).not.toContain(TOKEN);
   });

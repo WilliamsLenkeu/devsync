@@ -32,8 +32,13 @@ const status = z
   .describe('Kanban column: BACKLOG, TODO, IN_PROGRESS, IN_REVIEW or DONE.');
 const priority = z.enum(TASK_PRIORITIES).describe('LOW, MEDIUM, HIGH or URGENT.');
 const title = z.string().trim().min(1).max(200).describe('Task title, 1-200 characters.');
-const description = z.string().max(10_000).describe('Markdown description, up to 10000 characters.');
-const dueDate = z.iso.datetime({ offset: true }).describe('ISO-8601 date-time, e.g. 2026-12-31T17:00:00Z.');
+const description = z
+  .string()
+  .max(10_000)
+  .describe('Markdown description, up to 10000 characters.');
+const dueDate = z.iso
+  .datetime({ offset: true })
+  .describe('ISO-8601 date-time, e.g. 2026-12-31T17:00:00Z.');
 const labels = z
   .array(
     z.object({
@@ -128,7 +133,8 @@ export function registerTools(server: McpServer, client: DevSyncClient): void {
   server.registerTool(
     'get_task',
     {
-      description: 'Get one task by id, with its description, labels and comment count. Requires scope tasks:read.',
+      description:
+        'Get one task by id, with its description, labels and comment count. Requires scope tasks:read.',
       inputSchema: { taskId },
       annotations: { readOnlyHint: true },
     },
@@ -227,7 +233,13 @@ export function registerTools(server: McpServer, client: DevSyncClient): void {
         'Get the activity feed of a project, most recent first, paginated. Pass nextCursor back as cursor to get the next page. Requires scope activity:read.',
       inputSchema: {
         projectId,
-        limit: z.number().int().min(1).max(100).optional().describe('Page size, 1-100 (default 30).'),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .optional()
+          .describe('Page size, 1-100 (default 30).'),
         cursor: z.string().min(1).optional().describe('nextCursor from the previous page.'),
       },
       annotations: { readOnlyHint: true },

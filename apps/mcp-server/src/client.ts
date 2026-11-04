@@ -48,9 +48,17 @@ export class DevSyncClient {
       });
     } catch (error) {
       if (error instanceof Error && error.name === 'TimeoutError') {
-        throw new DevSyncApiError('TIMEOUT', `DevSync API did not respond within ${this.timeoutMs} ms.`, 0);
+        throw new DevSyncApiError(
+          'TIMEOUT',
+          `DevSync API did not respond within ${this.timeoutMs} ms.`,
+          0,
+        );
       }
-      throw new DevSyncApiError('NETWORK_ERROR', `Cannot reach the DevSync API at ${this.apiUrl}.`, 0);
+      throw new DevSyncApiError(
+        'NETWORK_ERROR',
+        `Cannot reach the DevSync API at ${this.apiUrl}.`,
+        0,
+      );
     }
 
     const json: unknown = await response.json().catch(() => undefined);

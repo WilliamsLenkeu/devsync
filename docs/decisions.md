@@ -28,21 +28,26 @@ Une seule `tsconfig.base.json` + `eslint.config.js` Ã  la racine suffisent. Un p
 - `Session` : une ligne par refresh token, `familyId` pour dÃ©tecter la rÃ©utilisation d'un token dÃ©jÃ  rotÃ©.
 - Pas d'unicitÃ© partielle des invitations PENDING en base (non exprimable dans Prisma) : vÃ©rifiÃ©e en transaction cÃ´tÃ© service.
 
-## D6 — Backend (phase 2)
+## D6 ï¿½ Backend (phase 2)
 
-- Réponses : succès `{ data }`, erreurs `{ error: { code, message, details? } }` ; handlers d'erreur posés AVANT l'enregistrement des modules (un `register` attendu copie les handlers dans le scope enfant).
-- Authz unique : `authorize()` (non-membre ? 404, rôle insuffisant ? 403, token ? scope + workspace). Le service `modules/tasks/service.ts` est partagé par les routes web et `/agent/*`.
-- Dernier OWNER protégé (409) ; un ADMIN ne peut pas toucher un OWNER (403). Invitation expirée/déjà traitée ? 409, mauvais email ? 403.
-- Assigné non membre du projet ? 400. `TASK_DELETED` n'a pas de `taskId` (sinon supprimé en cascade avec la tâche).
-- `Task.position` : Float, pas de 1024, insertion au milieu, rééquilibrage si écart < 1e-6.
+- Rï¿½ponses : succï¿½s `{ data }`, erreurs `{ error: { code, message, details? } }` ; handlers d'erreur posï¿½s AVANT l'enregistrement des modules (un `register` attendu copie les handlers dans le scope enfant).
+- Authz unique : `authorize()` (non-membre ? 404, rï¿½le insuffisant ? 403, token ? scope + workspace). Le service `modules/tasks/service.ts` est partagï¿½ par les routes web et `/agent/*`.
+- Dernier OWNER protï¿½gï¿½ (409) ; un ADMIN ne peut pas toucher un OWNER (403). Invitation expirï¿½e/dï¿½jï¿½ traitï¿½e ? 409, mauvais email ? 403.
+- Assignï¿½ non membre du projet ? 400. `TASK_DELETED` n'a pas de `taskId` (sinon supprimï¿½ en cascade avec la tï¿½che).
+- `Task.position` : Float, pas de 1024, insertion au milieu, rï¿½ï¿½quilibrage si ï¿½cart < 1e-6.
 - Dashboard : uniquement les projets ACTIVE ; `inProgress` = statut IN_PROGRESS seul.
-- Tokens API : `token:manage` exige MEMBER, donc un VIEWER ne peut pas créer de token. Événements à `audience` (notifications) livrés sans revérification d'appartenance (ponytail : une notification émise juste avant un retrait peut encore arriver).
-- Refresh token : rotation, réutilisation d'un token déjà roté ? révocation de toute la famille.
+- Tokens API : `token:manage` exige MEMBER, donc un VIEWER ne peut pas crï¿½er de token. ï¿½vï¿½nements ï¿½ `audience` (notifications) livrï¿½s sans revï¿½rification d'appartenance (ponytail : une notification ï¿½mise juste avant un retrait peut encore arriver).
+- Refresh token : rotation, rï¿½utilisation d'un token dï¿½jï¿½ rotï¿½ ? rï¿½vocation de toute la famille.
 
 
-## D7 — Conteneurs / CI (2026-11-04)
+## D7 â€” Conteneurs / CI (2026-11-04)
 
-- Build API : esbuild bundle ESM (dist/server.js), deps natives/runtime externalisées (@prisma/*, rgon2, pg, Fastify…). @devsync/shared est bundlé.
-- Dockerfiles multi-stage, contexte = racine monorepo. Compose : services migrate (one-shot), pi, web en plus de db ; ports host 3100/8080 pour ne pas croiser le dev Vite. Pas de healthcheck (wslc).
+- Build API : esbuild bundle ESM (dist/server.js), deps natives/runtime externalisÃ©es (@prisma/*, argon2, pg, Fastifyâ€¦). @devsync/shared est bundlÃ©.
+- Dockerfiles multi-stage, contexte = racine monorepo. Compose : services migrate (one-shot), api, web en plus de db ; ports host 3100/8080 pour ne pas croiser le dev Vite. Pas de healthcheck (wslc).
 - CI GitHub Actions : Postgres service, typecheck/lint/prettier/test/build + jobs images Docker et e2e conditionnel (si playwright.config.ts).
+
+## D8 â€” MCP server = client REST agent (2026-11-04)
+
+- `apps/mcp-server` est un processus stdio indÃ©pendant : 9 tools MCP â†’ `Authorization: Bearer dsk_â€¦` sur `/api/agent/*`. Pas d'accÃ¨s DB, pas de rÃ©-implÃ©mentation d'authz (scopes âˆ© rÃ´le dÃ©jÃ  cÃ´tÃ© API).
+- `TASK_STATUSES` / `TASK_PRIORITIES` dupliquÃ©s localement (`src/constants.ts`) tant que `@devsync/shared` n'est pas une dÃ©pendance du package.
 
