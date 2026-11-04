@@ -39,7 +39,8 @@ export function NotificationText({ n }: { n: AppNotification }) {
       const to = str(d, 'to');
       return (
         <>
-          <strong className="font-medium">{user(d, 'actor')}</strong> moved {task} to {to ? humanize(to) : 'a new status'}
+          <strong className="font-medium">{user(d, 'actor')}</strong> moved {task} to{' '}
+          {to ? humanize(to) : 'a new status'}
         </>
       );
     }
@@ -47,7 +48,8 @@ export function NotificationText({ n }: { n: AppNotification }) {
       return (
         <>
           <strong className="font-medium">{user(d, 'invitedBy')}</strong> invited you to{' '}
-          <strong className="font-medium">{str(d, 'workspaceName')}</strong> as {humanize(str(d, 'role'))}
+          <strong className="font-medium">{str(d, 'workspaceName')}</strong> as{' '}
+          {humanize(str(d, 'role'))}
         </>
       );
   }

@@ -6,7 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NotificationRow } from '@/features/notifications/NotificationRow';
-import { useNotificationActions, useNotificationPages, useUnreadCount } from '@/features/notifications/hooks';
+import {
+  useNotificationActions,
+  useNotificationPages,
+  useUnreadCount,
+} from '@/features/notifications/hooks';
 
 type Tab = 'all' | 'unread';
 
@@ -23,7 +27,12 @@ export function NotificationsPage() {
       <PageHeader
         title="Notifications"
         actions={
-          <Button variant="outline" size="sm" disabled={!unread || markAll.isPending} onClick={() => markAll.mutate()}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!unread || markAll.isPending}
+            onClick={() => markAll.mutate()}
+          >
             Mark all as read
           </Button>
         }
@@ -57,7 +66,11 @@ export function NotificationsPage() {
               </ul>
               {list.hasNextPage && (
                 <div className="flex justify-center">
-                  <Button variant="outline" disabled={list.isFetchingNextPage} onClick={() => void list.fetchNextPage()}>
+                  <Button
+                    variant="outline"
+                    disabled={list.isFetchingNextPage}
+                    onClick={() => void list.fetchNextPage()}
+                  >
                     {list.isFetchingNextPage ? 'Loading…' : 'Load more'}
                   </Button>
                 </div>

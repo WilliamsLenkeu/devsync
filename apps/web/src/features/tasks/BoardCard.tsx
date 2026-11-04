@@ -1,7 +1,15 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { TaskPriority, TaskStatus } from '@devsync/shared';
-import { CalendarDays, ChevronDown, ChevronsUp, ChevronUp, Equal, MessageSquare, UserRound } from 'lucide-react';
+import {
+  CalendarDays,
+  ChevronDown,
+  ChevronsUp,
+  ChevronUp,
+  Equal,
+  MessageSquare,
+  UserRound,
+} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { UserAvatar } from '@/components/UserAvatar';
@@ -70,16 +78,22 @@ export function TaskCardView({ task, overlay = false }: { task: Task; overlay?: 
             </li>
           ))}
           {task.labels.length > shownLabels.length && (
-            <li className="text-[11px] text-muted-foreground">+{task.labels.length - shownLabels.length}</li>
+            <li className="text-[11px] text-muted-foreground">
+              +{task.labels.length - shownLabels.length}
+            </li>
           )}
         </ul>
       )}
       <div className="mt-2.5 flex items-center justify-between gap-2 text-xs text-muted-foreground">
         <div className="flex min-w-0 items-center gap-3">
           {task.dueDate && (
-            <span className={cn('flex items-center gap-1', overdue && 'font-medium text-destructive')}>
+            <span
+              className={cn('flex items-center gap-1', overdue && 'font-medium text-destructive')}
+            >
               <CalendarDays className="size-3.5" aria-hidden />
-              <span>{overdue ? `Overdue · ${formatDate(task.dueDate)}` : formatDate(task.dueDate)}</span>
+              <span>
+                {overdue ? `Overdue · ${formatDate(task.dueDate)}` : formatDate(task.dueDate)}
+              </span>
             </span>
           )}
           {task.commentCount > 0 && (

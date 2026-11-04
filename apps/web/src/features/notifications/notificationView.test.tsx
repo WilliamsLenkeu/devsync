@@ -27,7 +27,11 @@ describe('NotificationText', () => {
   });
 
   it('humanizes the new status of a task update', () => {
-    const n = { ...base, type: 'TASK_UPDATED', data: { ...task, actor, from: 'TODO', to: 'IN_PROGRESS' } } as AppNotification;
+    const n = {
+      ...base,
+      type: 'TASK_UPDATED',
+      data: { ...task, actor, from: 'TODO', to: 'IN_PROGRESS' },
+    } as AppNotification;
     const { container } = render(<NotificationText n={n} />);
     expect(container.textContent).toBe('Ada moved WEB-12 — Fix login to In progress');
   });

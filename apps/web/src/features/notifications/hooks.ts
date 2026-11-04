@@ -27,7 +27,11 @@ export function useNotificationPages(unread: boolean) {
   return useInfiniteQuery({
     queryKey: [...qk.notifications, 'pages', { unread }],
     queryFn: ({ pageParam }) =>
-      api.page<AppNotification>('/notifications', { limit: 30, unread: unread || undefined, cursor: pageParam }),
+      api.page<AppNotification>('/notifications', {
+        limit: 30,
+        unread: unread || undefined,
+        cursor: pageParam,
+      }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });

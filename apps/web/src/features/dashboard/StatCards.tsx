@@ -13,9 +13,19 @@ export function StatCards({ totals }: { totals: Dashboard['totals'] }) {
   return (
     <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {stats.map((s) => (
-        <Card key={s.label} className={cn('gap-2 py-5', s.alert && 'border-destructive/40 bg-destructive/5')}>
+        <Card
+          key={s.label}
+          className={cn('gap-2 py-5', s.alert && 'border-destructive/40 bg-destructive/5')}
+        >
           <dt className="px-5 text-sm text-muted-foreground">{s.label}</dt>
-          <dd className={cn('px-5 text-3xl font-semibold tabular-nums', s.alert && 'text-destructive')}>{s.value}</dd>
+          <dd
+            className={cn(
+              'px-5 text-3xl font-semibold tabular-nums',
+              s.alert && 'text-destructive',
+            )}
+          >
+            {s.value}
+          </dd>
         </Card>
       ))}
     </dl>

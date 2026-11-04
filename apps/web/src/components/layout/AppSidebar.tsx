@@ -1,6 +1,14 @@
 import { can } from '@devsync/shared';
 import { useQuery } from '@tanstack/react-query';
-import { Activity, FolderKanban, KeyRound, LayoutDashboard, Settings, Users, type LucideIcon } from 'lucide-react';
+import {
+  Activity,
+  FolderKanban,
+  KeyRound,
+  LayoutDashboard,
+  Settings,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 import { Logo } from '@/components/layout/Logo';
 import { WorkspaceSwitcher } from '@/components/layout/WorkspaceSwitcher';
@@ -19,7 +27,11 @@ export function AppSidebar({ workspace, onNavigate }: AppSidebarProps) {
     <div className="flex h-full flex-col gap-4 py-4">
       <div className="flex items-center gap-2 px-4">
         <Logo />
-        <Link to="/app" onClick={onNavigate} className="rounded-md text-sm font-semibold outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+        <Link
+          to="/app"
+          onClick={onNavigate}
+          className="rounded-md text-sm font-semibold outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        >
           DevSync
         </Link>
       </div>
@@ -31,7 +43,13 @@ export function AppSidebar({ workspace, onNavigate }: AppSidebarProps) {
   );
 }
 
-function WorkspaceNav({ workspace, onNavigate }: { workspace: Workspace; onNavigate?: () => void }) {
+function WorkspaceNav({
+  workspace,
+  onNavigate,
+}: {
+  workspace: Workspace;
+  onNavigate?: () => void;
+}) {
   const base = `/w/${workspace.id}`;
   const projects = useQuery({
     queryKey: [...qk.projects(workspace.id), { status: 'ACTIVE' }],
@@ -43,7 +61,9 @@ function WorkspaceNav({ workspace, onNavigate }: { workspace: Workspace; onNavig
     { to: `${base}/activity`, label: 'Activity', icon: Activity },
     { to: `${base}/members`, label: 'Members', icon: Users },
     { to: `${base}/api-tokens`, label: 'API tokens', icon: KeyRound },
-    ...(can(workspace.role, 'workspace:update') ? [{ to: `${base}/settings`, label: 'Settings', icon: Settings }] : []),
+    ...(can(workspace.role, 'workspace:update')
+      ? [{ to: `${base}/settings`, label: 'Settings', icon: Settings }]
+      : []),
   ];
 
   return (
@@ -59,7 +79,10 @@ function WorkspaceNav({ workspace, onNavigate }: { workspace: Workspace; onNavig
       </nav>
       {projects.data && projects.data.length > 0 && (
         <nav aria-labelledby="sidebar-projects">
-          <h2 id="sidebar-projects" className="px-2 pb-1.5 text-xs font-medium text-muted-foreground">
+          <h2
+            id="sidebar-projects"
+            className="px-2 pb-1.5 text-xs font-medium text-muted-foreground"
+          >
             Active projects
           </h2>
           <ul className="grid gap-0.5">
@@ -71,7 +94,9 @@ function WorkspaceNav({ workspace, onNavigate }: { workspace: Workspace; onNavig
                   className={({ isActive }) => linkClass(isActive)}
                 >
                   <span className="truncate">{p.name}</span>
-                  <span className="ml-auto font-mono text-[11px] text-muted-foreground">{p.identifier}</span>
+                  <span className="ml-auto font-mono text-[11px] text-muted-foreground">
+                    {p.identifier}
+                  </span>
                 </NavLink>
               </li>
             ))}
@@ -92,7 +117,12 @@ interface NavItem {
 function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
   const Icon = item.icon;
   return (
-    <NavLink to={item.to} end={item.end} onClick={onNavigate} className={({ isActive }) => linkClass(isActive)}>
+    <NavLink
+      to={item.to}
+      end={item.end}
+      onClick={onNavigate}
+      className={({ isActive }) => linkClass(isActive)}
+    >
       <Icon className="size-4 shrink-0" aria-hidden />
       {item.label}
     </NavLink>
@@ -102,5 +132,7 @@ function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
 const linkClass = (active: boolean) =>
   cn(
     'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50',
-    active ? 'bg-sidebar-accent font-medium text-foreground' : 'text-sidebar-foreground hover:bg-sidebar-accent/60',
+    active
+      ? 'bg-sidebar-accent font-medium text-foreground'
+      : 'text-sidebar-foreground hover:bg-sidebar-accent/60',
   );

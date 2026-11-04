@@ -84,11 +84,18 @@ export function ProjectHeader({ project, canManage }: { project: Project; canMan
 
       {canManage && (
         <>
-          <ProjectFormDialog open={editOpen} onOpenChange={setEditOpen} project={project} onSubmit={onEdit} />
+          <ProjectFormDialog
+            open={editOpen}
+            onOpenChange={setEditOpen}
+            project={project}
+            onSubmit={onEdit}
+          />
           <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>
             <AlertDialogContent size="sm">
               <AlertDialogHeader>
-                <AlertDialogTitle>{archived ? 'Unarchive' : 'Archive'} “{project.name}”?</AlertDialogTitle>
+                <AlertDialogTitle>
+                  {archived ? 'Unarchive' : 'Archive'} “{project.name}”?
+                </AlertDialogTitle>
                 <AlertDialogDescription>
                   {archived
                     ? 'Tasks can be created and edited again.'
@@ -97,7 +104,9 @@ export function ProjectHeader({ project, canManage }: { project: Project; canMan
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={toggleArchive}>{archived ? 'Unarchive' : 'Archive'}</AlertDialogAction>
+                <AlertDialogAction onClick={toggleArchive}>
+                  {archived ? 'Unarchive' : 'Archive'}
+                </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

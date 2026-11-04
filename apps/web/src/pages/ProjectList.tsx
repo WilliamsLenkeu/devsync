@@ -58,7 +58,9 @@ export function ProjectListPage() {
               ))}
             </div>
           )}
-          {projects.isError && <ErrorState error={projects.error} onRetry={() => void projects.refetch()} />}
+          {projects.isError && (
+            <ErrorState error={projects.error} onRetry={() => void projects.refetch()} />
+          )}
           {projects.data && (
             <ProjectsGrid
               projects={projects.data}
@@ -70,7 +72,13 @@ export function ProjectListPage() {
         </TabsContent>
       </Tabs>
 
-      {canCreate && <CreateProjectDialog open={createOpen} onOpenChange={setCreateOpen} workspaceId={workspace.id} />}
+      {canCreate && (
+        <CreateProjectDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          workspaceId={workspace.id}
+        />
+      )}
     </>
   );
 }

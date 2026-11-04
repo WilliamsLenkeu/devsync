@@ -6,9 +6,12 @@ describe('safeNext', () => {
     expect(safeNext('/w/abc/projects?x=1')).toBe('/w/abc/projects?x=1');
   });
 
-  it.each(['https://evil.example', '//evil.example', '/\\evil.example', '', null])('falls back to /app for %s', (next) => {
-    expect(safeNext(next)).toBe('/app');
-  });
+  it.each(['https://evil.example', '//evil.example', '/\\evil.example', '', null])(
+    'falls back to /app for %s',
+    (next) => {
+      expect(safeNext(next)).toBe('/app');
+    },
+  );
 
   it('keeps next when building auth links', () => {
     expect(withNext('/register', '/w/abc')).toBe('/register?next=%2Fw%2Fabc');

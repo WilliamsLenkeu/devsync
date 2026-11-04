@@ -1,5 +1,10 @@
 import type { TaskPriority, TaskStatus } from '@devsync/shared';
-import { useMutation, useQueryClient, type QueryClient, type QueryKey } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+  type QueryKey,
+} from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { api, errorMessage } from '@/lib/api';
 import { qk } from '@/lib/queryKeys';
@@ -37,7 +42,11 @@ export interface UpdateTaskBody {
 
 /** Every view that shows a task's data: the project's lists, the sheet, comments/activity, counters, dashboard. */
 function invalidateTask(qc: QueryClient, scope: TaskScope, taskId?: string) {
-  const keys: QueryKey[] = [qk.tasks(scope.projectId), qk.project(scope.projectId), qk.dashboard(scope.workspaceId)];
+  const keys: QueryKey[] = [
+    qk.tasks(scope.projectId),
+    qk.project(scope.projectId),
+    qk.dashboard(scope.workspaceId),
+  ];
   if (taskId) keys.push(qk.task(taskId), qk.comments(taskId), qk.taskActivity(taskId));
   return Promise.all(keys.map((queryKey) => qc.invalidateQueries({ queryKey })));
 }
@@ -45,7 +54,8 @@ function invalidateTask(qc: QueryClient, scope: TaskScope, taskId?: string) {
 export function useCreateTask(scope: TaskScope) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: CreateTaskBody) => api.post<Task>(`/projects/${scope.projectId}/tasks`, body),
+    mutationFn: (body: CreateTaskBody) =>
+      api.post<Task>(`/projects/${scope.projectId}/tasks`, body),
     onSuccess: () => {
       toast.success('Task created');
       return invalidateTask(qc, scope);
@@ -63,7 +73,10 @@ export function useMoveTask(scope: TaskScope) {
     onMutate: async ({ taskId, ...target }) => {
       await qc.cancelQueries({ queryKey: listKey });
       const snapshot = qc.getQueriesData<Task[]>({ queryKey: listKey });
-      qc.setQueriesData<Task[]>({ queryKey: listKey }, (old) => old && applyMove(old, taskId, target));
+      qc.setQueriesData<Task[]>(
+        { queryKey: listKey },
+        (old) => old && applyMove(old, taskId, target),
+      );
       return { snapshot };
     },
     onError: (err, _vars, ctx) => {
@@ -110,7 +123,8 @@ export function useCreateComment(scope: TaskScope) {
 export function useDeleteComment(scope: TaskScope) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ commentId }: { commentId: string; taskId: string }) => api.delete(`/comments/${commentId}`),
+    mutationFn: ({ commentId }: { commentId: string; taskId: string }) =>
+      api.delete(`/comments/${commentId}`),
     onSuccess: (_void, { taskId }) => invalidateTask(qc, scope, taskId),
     onError: (err) => toast.error(errorMessage(err, 'Could not delete the comment')),
   });

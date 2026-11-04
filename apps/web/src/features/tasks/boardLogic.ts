@@ -1,4 +1,4 @@
-import { TASK_PRIORITIES, TASK_STATUSES, type TaskPriority, type TaskStatus } from '@devsync/shared';
+import { TASK_PRIORITIES, type TaskPriority, type TaskStatus } from '@devsync/shared';
 import { format, parseISO } from 'date-fns';
 import type { Task } from '@/lib/types';
 
@@ -17,7 +17,8 @@ export interface BoardFilters {
   order: 'asc' | 'desc';
 }
 
-const isPriority = (v: string): v is TaskPriority => (TASK_PRIORITIES as readonly string[]).includes(v);
+const isPriority = (v: string): v is TaskPriority =>
+  (TASK_PRIORITIES as readonly string[]).includes(v);
 const isSortKey = (v: string): v is SortKey => (SORT_KEYS as readonly string[]).includes(v);
 
 export function parseBoardFilters(params: URLSearchParams): BoardFilters {
@@ -54,7 +55,8 @@ export function writeBoardFilters(prev: URLSearchParams, next: BoardFilters): UR
 export const hasActiveFilters = (f: BoardFilters) => !!(f.q || f.priority || f.assignee || f.label);
 
 /** Reordering inside a column only makes sense on the plain, unfiltered, position-sorted board. */
-export const isManualOrder = (f: BoardFilters) => !hasActiveFilters(f) && f.sort === 'position' && f.order === 'asc';
+export const isManualOrder = (f: BoardFilters) =>
+  !hasActiveFilters(f) && f.sort === 'position' && f.order === 'asc';
 
 export const toApiQuery = (f: BoardFilters) => ({
   q: f.q,
@@ -79,13 +81,19 @@ export interface DropTarget {
   beforeTaskId: string | null;
 }
 
-const columnIds = (tasks: Task[], status: TaskStatus) => tasks.filter((t) => t.status === status).map((t) => t.id);
+const columnIds = (tasks: Task[], status: TaskStatus) =>
+  tasks.filter((t) => t.status === status).map((t) => t.id);
 
 /**
  * Target of a drop. `overId` is the card under the pointer/focus, or null when dropped on the column itself (= end).
  * Dropping below a card lands after it (sortable semantics), above it lands before it.
  */
-export function getDropTarget(tasks: Task[], activeId: string, overId: string | null, status: TaskStatus): DropTarget {
+export function getDropTarget(
+  tasks: Task[],
+  activeId: string,
+  overId: string | null,
+  status: TaskStatus,
+): DropTarget {
   const column = columnIds(tasks, status);
   if (overId === null || !column.includes(overId)) return { status, beforeTaskId: null };
   const from = column.indexOf(activeId);
@@ -115,7 +123,13 @@ export function applyMove(tasks: Task[], taskId: string, target: DropTarget): Ta
 }
 
 export function groupByStatus(tasks: Task[]): Record<TaskStatus, Task[]> {
-  const groups = Object.fromEntries(TASK_STATUSES.map((s) => [s, []])) as Record<TaskStatus, Task[]>;
+  const groups: Record<TaskStatus, Task[]> = {
+    BACKLOG: [],
+    TODO: [],
+    IN_PROGRESS: [],
+    IN_REVIEW: [],
+    DONE: [],
+  };
   for (const task of tasks) groups[task.status].push(task);
   return groups;
 }
@@ -126,7 +140,15 @@ export const isoToDateInput = (iso: string) => format(parseISO(iso), 'yyyy-MM-dd
 
 /** "bug, ui,, bug" -> ["bug", "ui"] */
 export function parseLabelNames(input: string): string[] {
-  return [...new Set(input.split(',').map((s) => s.trim()).filter(Boolean))];
+  return [
+    ...new Set(
+      input
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ),
+  ];
 }
 
-export const taskHref = (params: URLSearchParams, taskId: string) => `?${withTaskParam(params, taskId)}`;
+export const taskHref = (params: URLSearchParams, taskId: string) =>
+  `?${withTaskParam(params, taskId)}`;

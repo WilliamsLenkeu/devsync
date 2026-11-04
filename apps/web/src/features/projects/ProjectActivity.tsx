@@ -9,7 +9,8 @@ export function ProjectActivity({ projectId }: { projectId: string }) {
   const activity = useProjectActivity(projectId);
 
   if (activity.isPending) return <Skeleton className="h-40" />;
-  if (activity.isError) return <ErrorState error={activity.error} onRetry={() => void activity.refetch()} />;
+  if (activity.isError)
+    return <ErrorState error={activity.error} onRetry={() => void activity.refetch()} />;
 
   const items = activity.data.pages.flatMap((page) => page.data);
   if (items.length === 0) {

@@ -24,7 +24,8 @@ export function ProjectProgressList({
                   to={`/w/${workspaceId}/projects/${p.projectId}`}
                   className="min-w-0 truncate font-medium hover:text-primary hover:underline"
                 >
-                  <span className="font-mono text-xs text-muted-foreground">{p.identifier}</span> {p.name}
+                  <span className="font-mono text-xs text-muted-foreground">{p.identifier}</span>{' '}
+                  {p.name}
                 </Link>
                 <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
                   {p.done}/{p.total} · {percent(p.done, p.total)}%

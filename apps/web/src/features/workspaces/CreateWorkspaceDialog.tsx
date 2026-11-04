@@ -26,7 +26,13 @@ const createWorkspaceSchema = z.object({
 });
 type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>;
 
-export function CreateWorkspaceDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function CreateWorkspaceDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const {
@@ -61,10 +67,14 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: { open: boolean; o
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create workspace</DialogTitle>
-          <DialogDescription>A workspace holds your projects, members and API tokens.</DialogDescription>
+          <DialogDescription>
+            A workspace holds your projects, members and API tokens.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} noValidate className="grid gap-4">
-          {errors.root && <FormAlert message={errors.root.message ?? 'Could not create the workspace'} />}
+          {errors.root && (
+            <FormAlert message={errors.root.message ?? 'Could not create the workspace'} />
+          )}
           <Field id="ws-name" label="Name" error={errors.name?.message}>
             <Input
               id="ws-name"
@@ -73,7 +83,11 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: { open: boolean; o
               {...register('name')}
             />
           </Field>
-          <Field id="ws-description" label="Description (optional)" error={errors.description?.message}>
+          <Field
+            id="ws-description"
+            label="Description (optional)"
+            error={errors.description?.message}
+          >
             <Textarea
               id="ws-description"
               rows={3}

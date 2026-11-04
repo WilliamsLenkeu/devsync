@@ -10,7 +10,11 @@ import {
   type DragEndEvent,
   type Over,
 } from '@dnd-kit/core';
-import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { TASK_STATUSES, type TaskStatus } from '@devsync/shared';
 import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -76,9 +80,12 @@ export function KanbanBoard({ tasks, canDrag, manualOrder, onMove }: KanbanBoard
         announcements: {
           onDragStart: ({ active }) =>
             `Picked up ${describe(String(active.id))}. Use arrow keys to move, space to drop, escape to cancel.`,
-          onDragOver: ({ active, over }) => `${describe(String(active.id))} is over ${columnOf(over)}.`,
+          onDragOver: ({ active, over }) =>
+            `${describe(String(active.id))} is over ${columnOf(over)}.`,
           onDragEnd: ({ active, over }) =>
-            over ? `Dropped ${describe(String(active.id))} in ${columnOf(over)}.` : `Move cancelled.`,
+            over
+              ? `Dropped ${describe(String(active.id))} in ${columnOf(over)}.`
+              : `Move cancelled.`,
           onDragCancel: ({ active }) => `Cancelled moving ${describe(String(active.id))}.`,
         },
       }}
@@ -93,9 +100,20 @@ export function KanbanBoard({ tasks, canDrag, manualOrder, onMove }: KanbanBoard
   );
 }
 
-function BoardColumn({ status, tasks, canDrag }: { status: TaskStatus; tasks: Task[]; canDrag: boolean }) {
+function BoardColumn({
+  status,
+  tasks,
+  canDrag,
+}: {
+  status: TaskStatus;
+  tasks: Task[];
+  canDrag: boolean;
+}) {
   const title = humanize(status);
-  const { setNodeRef, isOver } = useDroppable({ id: columnDomId(status), data: { status } satisfies DragData });
+  const { setNodeRef, isOver } = useDroppable({
+    id: columnDomId(status),
+    data: { status } satisfies DragData,
+  });
 
   return (
     <section aria-labelledby={`column-${status}`} className="flex w-72 shrink-0 flex-col sm:w-80">
@@ -103,7 +121,10 @@ function BoardColumn({ status, tasks, canDrag }: { status: TaskStatus; tasks: Ta
         <h2 id={`column-${status}`} className="text-sm font-medium">
           {title}
         </h2>
-        <span className="rounded-full bg-muted px-2 text-xs text-muted-foreground tabular-nums" aria-label={`${tasks.length} tasks`}>
+        <span
+          className="rounded-full bg-muted px-2 text-xs text-muted-foreground tabular-nums"
+          aria-label={`${tasks.length} tasks`}
+        >
           {tasks.length}
         </span>
       </header>
@@ -120,7 +141,9 @@ function BoardColumn({ status, tasks, canDrag }: { status: TaskStatus; tasks: Ta
           ))}
         </SortableContext>
         {tasks.length === 0 && (
-          <p className="grid flex-1 place-items-center py-6 text-xs text-muted-foreground">No tasks in {title}</p>
+          <p className="grid flex-1 place-items-center py-6 text-xs text-muted-foreground">
+            No tasks in {title}
+          </p>
         )}
       </div>
     </section>

@@ -28,19 +28,22 @@ export function RegisterPage() {
     defaultValues: { name: '', email: '', password: '' },
   });
 
-  const onSubmit = async (values: RegisterInput) => {
-    try {
-      await createAccount(values);
-      navigate(safeNext(next), { replace: true });
-    } catch (err) {
-      setError('root', { message: errorMessage(err, 'Could not create the account') });
-    }
-  };
+  const onSubmit = (values: RegisterInput) =>
+    createAccount(values).then(
+      () => navigate(safeNext(next), { replace: true }),
+      (err: unknown) =>
+        setError('root', { message: errorMessage(err, 'Could not create the account') }),
+    );
 
   return (
-    <AuthShell title="Create your account" description="Set up your profile. You can create or join workspaces next.">
+    <AuthShell
+      title="Create your account"
+      description="Set up your profile. You can create or join workspaces next."
+    >
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="grid gap-4">
-        {errors.root && <FormAlert message={errors.root.message ?? 'Could not create the account'} />}
+        {errors.root && (
+          <FormAlert message={errors.root.message ?? 'Could not create the account'} />
+        )}
         <Field id="name" label="Name" error={errors.name?.message}>
           <Input
             id="name"
@@ -77,7 +80,10 @@ export function RegisterPage() {
         </Button>
         <p className="text-center text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link to={withNext('/login', next)} className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link
+            to={withNext('/login', next)}
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
             Sign in
           </Link>
         </p>

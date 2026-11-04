@@ -15,7 +15,9 @@ export function ProjectCard({ project, workspaceId }: { project: Project; worksp
         <Badge variant="outline" className="font-mono">
           {project.identifier}
         </Badge>
-        <Badge variant={project.status === 'ARCHIVED' ? 'secondary' : 'default'}>{humanize(project.status)}</Badge>
+        <Badge variant={project.status === 'ARCHIVED' ? 'secondary' : 'default'}>
+          {humanize(project.status)}
+        </Badge>
       </div>
       <div className="min-w-0">
         <h2 className="truncate font-semibold group-hover:text-primary">{project.name}</h2>

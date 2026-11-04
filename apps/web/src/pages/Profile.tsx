@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useDocumentTitle } from '@/components/layout/useDocumentTitle';
@@ -9,7 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Field, FormAlert } from '@/features/auth/Field';
 import { PasswordInput } from '@/features/auth/PasswordInput';
-import { passwordChangeSchema, profileSchema, type PasswordChangeInput, type ProfileInput } from '@/features/auth/schemas';
+import {
+  passwordChangeSchema,
+  profileSchema,
+  type PasswordChangeInput,
+  type ProfileInput,
+} from '@/features/auth/schemas';
 import { api, errorMessage } from '@/lib/api';
 import { useAuth, useUser } from '@/lib/auth';
 import type { User } from '@/lib/types';
@@ -43,7 +47,10 @@ function ProfileForm({ user }: { user: User }) {
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      const updated = await api.patch<User>('/users/me', { name: values.name, avatarUrl: values.avatarUrl || null });
+      const updated = await api.patch<User>('/users/me', {
+        name: values.name,
+        avatarUrl: values.avatarUrl || null,
+      });
       setUser(updated);
       reset({ name: updated.name, avatarUrl: updated.avatarUrl ?? '' });
       toast.success('Profile updated');
@@ -58,17 +65,24 @@ function ProfileForm({ user }: { user: User }) {
         <h2 id="profile-title" className="text-sm font-medium">
           Profile details
         </h2>
-        <p className="text-sm text-muted-foreground">Email is managed by your account and cannot be changed here.</p>
+        <p className="text-sm text-muted-foreground">
+          Email is managed by your account and cannot be changed here.
+        </p>
       </div>
       <div className="flex items-center gap-4">
-        <UserAvatar user={{ name: user.name, avatarUrl: avatarUrl || null }} className="size-12 text-sm" />
+        <UserAvatar
+          user={{ name: user.name, avatarUrl: avatarUrl || null }}
+          className="size-12 text-sm"
+        />
         <div className="min-w-0 text-sm">
           <p className="font-medium">{user.name}</p>
           <p className="truncate text-muted-foreground">{user.email}</p>
         </div>
       </div>
       <form onSubmit={onSubmit} noValidate className="grid gap-4">
-        {errors.root && <FormAlert message={errors.root.message ?? 'Could not update the profile'} />}
+        {errors.root && (
+          <FormAlert message={errors.root.message ?? 'Could not update the profile'} />
+        )}
         <Field id="profile-name" label="Name" error={errors.name?.message}>
           <Input
             id="profile-name"
@@ -115,7 +129,10 @@ function PasswordForm() {
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      await api.post('/users/me/password', { currentPassword: values.currentPassword, newPassword: values.newPassword });
+      await api.post('/users/me/password', {
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
+      });
       reset();
       toast.success('Password changed');
     } catch (err) {
@@ -132,8 +149,14 @@ function PasswordForm() {
         <p className="text-sm text-muted-foreground">Use at least 8 characters.</p>
       </div>
       <form onSubmit={onSubmit} noValidate className="grid gap-4">
-        {errors.root && <FormAlert message={errors.root.message ?? 'Could not change the password'} />}
-        <Field id="current-password" label="Current password" error={errors.currentPassword?.message}>
+        {errors.root && (
+          <FormAlert message={errors.root.message ?? 'Could not change the password'} />
+        )}
+        <Field
+          id="current-password"
+          label="Current password"
+          error={errors.currentPassword?.message}
+        >
           <PasswordInput
             id="current-password"
             autoComplete="current-password"
@@ -151,7 +174,11 @@ function PasswordForm() {
             {...register('newPassword')}
           />
         </Field>
-        <Field id="confirm-password" label="Confirm new password" error={errors.confirmPassword?.message}>
+        <Field
+          id="confirm-password"
+          label="Confirm new password"
+          error={errors.confirmPassword?.message}
+        >
           <PasswordInput
             id="confirm-password"
             autoComplete="new-password"

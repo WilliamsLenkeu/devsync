@@ -17,7 +17,12 @@ export function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" aria-label={unread ? `Notifications, ${unread} unread` : 'Notifications'}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          aria-label={unread ? `Notifications, ${unread} unread` : 'Notifications'}
+        >
           <Bell aria-hidden />
           {unread > 0 && (
             <span
@@ -32,7 +37,12 @@ export function NotificationBell() {
       <PopoverContent align="end" className="w-96 p-0">
         <div className="flex items-center justify-between border-b px-4 py-3">
           <h2 className="text-sm font-semibold">Notifications</h2>
-          <Button variant="ghost" size="sm" disabled={!unread || markAll.isPending} onClick={() => markAll.mutate()}>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={!unread || markAll.isPending}
+            onClick={() => markAll.mutate()}
+          >
             Mark all as read
           </Button>
         </div>
@@ -47,7 +57,9 @@ export function NotificationBell() {
               <Skeleton className="h-12" />
             </div>
           ) : recent.data.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-muted-foreground">You're all caught up.</p>
+            <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+              You're all caught up.
+            </p>
           ) : (
             <ul>
               {recent.data.map((n) => (

@@ -35,7 +35,12 @@ export function AcceptInvitationPage() {
   }, [token, mutate]);
 
   if (!token) {
-    return <Result title="Invitation link incomplete" message="This link is missing its invitation token. Open the link again from your email or ask for a new invitation." />;
+    return (
+      <Result
+        title="Invitation link incomplete"
+        message="This link is missing its invitation token. Open the link again from your email or ask for a new invitation."
+      />
+    );
   }
   if (accept.isError) {
     return <Result title="Invitation not accepted" message={errorMessage(accept.error)} />;

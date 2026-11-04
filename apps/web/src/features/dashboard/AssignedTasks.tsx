@@ -28,7 +28,9 @@ export function AssignedTasks({
       </CardHeader>
       <CardContent>
         {assigned.tasks.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">Nothing assigned to you right now.</p>
+          <p className="py-6 text-center text-sm text-muted-foreground">
+            Nothing assigned to you right now.
+          </p>
         ) : (
           <ul className="divide-y">
             {assigned.tasks.map((task) => {
@@ -42,11 +44,19 @@ export function AssignedTasks({
                   >
                     {task.title}
                   </Link>
-                  <Badge variant="outline" className={cn('border-transparent', PRIORITY_CLASS[task.priority])}>
+                  <Badge
+                    variant="outline"
+                    className={cn('border-transparent', PRIORITY_CLASS[task.priority])}
+                  >
                     {humanize(task.priority)}
                   </Badge>
                   {task.dueDate && (
-                    <span className={cn('text-xs tabular-nums text-muted-foreground', overdue && 'font-medium text-destructive')}>
+                    <span
+                      className={cn(
+                        'text-xs tabular-nums text-muted-foreground',
+                        overdue && 'font-medium text-destructive',
+                      )}
+                    >
                       {overdue ? 'Overdue · ' : 'Due '}
                       {formatDate(task.dueDate)}
                     </span>

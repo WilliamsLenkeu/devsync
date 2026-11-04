@@ -14,12 +14,23 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserAvatar } from '@/components/UserAvatar';
 import { errorMessage } from '@/lib/api';
 import type { ProjectMember } from '@/lib/types';
-import { useAddProjectMember, useProjectMembers, useRemoveProjectMember, useWorkspaceMembers } from './queries';
+import {
+  useAddProjectMember,
+  useProjectMembers,
+  useRemoveProjectMember,
+  useWorkspaceMembers,
+} from './queries';
 
 export function ProjectMembers({
   projectId,
@@ -65,9 +76,17 @@ export function ProjectMembers({
         <div className="mt-4 grid gap-2">
           <Label htmlFor="add-member">Add a workspace member</Label>
           <div className="flex gap-2">
-            <Select value={selectedUserId} onValueChange={setSelectedUserId} disabled={addable.length === 0}>
+            <Select
+              value={selectedUserId}
+              onValueChange={setSelectedUserId}
+              disabled={addable.length === 0}
+            >
               <SelectTrigger id="add-member" className="min-w-0 flex-1">
-                <SelectValue placeholder={addable.length === 0 ? 'Everyone is in this project' : 'Select a member'} />
+                <SelectValue
+                  placeholder={
+                    addable.length === 0 ? 'Everyone is in this project' : 'Select a member'
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {addable.map((m) => (
@@ -77,7 +96,11 @@ export function ProjectMembers({
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={onAdd} disabled={!selectedUserId || add.isPending} aria-label="Add selected member">
+            <Button
+              onClick={onAdd}
+              disabled={!selectedUserId || add.isPending}
+              aria-label="Add selected member"
+            >
               <UserPlus aria-hidden />
               Add
             </Button>
@@ -93,12 +116,20 @@ export function ProjectMembers({
             ))}
           </div>
         )}
-        {members.isError && <ErrorState error={members.error} onRetry={() => void members.refetch()} />}
-        {members.data && (
+        {members.isError && (
+          <ErrorState error={members.error} onRetry={() => void members.refetch()} />
+        )}
+        {members.data && members.data.length === 0 && (
+          <p className="py-4 text-center text-sm text-muted-foreground">No members yet.</p>
+        )}
+        {members.data && members.data.length > 0 && (
           <ul className="space-y-1">
             {members.data.map((m) => (
               <li key={m.userId} className="flex items-center gap-3 rounded-md px-1 py-1.5">
-                <UserAvatar user={{ name: m.user.name, avatarUrl: m.user.avatarUrl }} className="size-8" />
+                <UserAvatar
+                  user={{ name: m.user.name, avatarUrl: m.user.avatarUrl }}
+                  className="size-8"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{m.user.name}</p>
                   <p className="truncate text-xs text-muted-foreground">{m.user.email}</p>

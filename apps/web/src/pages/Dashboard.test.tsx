@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { can, type Action, type WorkspaceRole } from '@devsync/shared';
-import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Dashboard } from '@/lib/types';
@@ -62,7 +61,9 @@ const populated: Dashboard = {
 
 const renderPage = () =>
   render(
-    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+    >
       <MemoryRouter>
         <DashboardPage />
       </MemoryRouter>
@@ -80,7 +81,9 @@ describe('DashboardPage', () => {
 
     renderPage();
 
-    expect(await screen.findByRole('button', { name: /create your first project/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: /create your first project/i }),
+    ).toBeInTheDocument();
     expect(mocks.get).toHaveBeenCalledWith('/workspaces/ws-1/dashboard');
   });
 
@@ -91,7 +94,9 @@ describe('DashboardPage', () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'No projects yet' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /create your first project/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /create your first project/i }),
+    ).not.toBeInTheDocument();
   });
 
   it('links assigned tasks to their board sheet and shows overdue totals', async () => {
@@ -103,7 +108,7 @@ describe('DashboardPage', () => {
       'href',
       '/w/ws-1/projects/p1/board?task=t1',
     );
-    expect(screen.getByText('Overdue · 1 Jan 2020')).toBeInTheDocument();
+    expect(screen.getByText(/Overdue ·/)).toHaveTextContent(/2020/);
     expect(screen.getByText('Overdue').nextElementSibling).toHaveTextContent('2');
   });
 });

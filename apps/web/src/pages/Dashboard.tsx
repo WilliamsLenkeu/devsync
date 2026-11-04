@@ -50,7 +50,11 @@ export function DashboardPage() {
       <div className="space-y-6">
         <StatCards totals={data.totals} />
         <div className="grid gap-6 lg:grid-cols-3">
-          <AssignedTasks workspaceId={workspace.id} assigned={data.assignedToMe} className="lg:col-span-2" />
+          <AssignedTasks
+            workspaceId={workspace.id}
+            assigned={data.assignedToMe}
+            className="lg:col-span-2"
+          />
           <ProjectProgressList workspaceId={workspace.id} projects={data.projectProgress} />
         </div>
         <RecentActivity activity={data.recentActivity} />
@@ -62,7 +66,13 @@ export function DashboardPage() {
     <>
       <PageHeader title="Dashboard" description={workspace.name} />
       {content}
-      {canCreate && <CreateProjectDialog open={createOpen} onOpenChange={setCreateOpen} workspaceId={workspace.id} />}
+      {canCreate && (
+        <CreateProjectDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          workspaceId={workspace.id}
+        />
+      )}
     </>
   );
 }

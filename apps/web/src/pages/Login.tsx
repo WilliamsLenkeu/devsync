@@ -23,16 +23,16 @@ export function LoginPage() {
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<LoginInput>({ resolver: zodResolver(loginSchema), defaultValues: { email: '', password: '' } });
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  });
 
-  const onSubmit = async (values: LoginInput) => {
-    try {
-      await login(values.email, values.password);
-      navigate(safeNext(next), { replace: true });
-    } catch (err) {
-      setError('root', { message: errorMessage(err, 'Sign in failed') });
-    }
-  };
+  const onSubmit = (values: LoginInput) =>
+    login(values.email, values.password).then(
+      () => navigate(safeNext(next), { replace: true }),
+      (err: unknown) => setError('root', { message: errorMessage(err, 'Sign in failed') }),
+    );
 
   return (
     <AuthShell title="Sign in" description="Sign in to continue to your workspaces.">
@@ -62,7 +62,10 @@ export function LoginPage() {
         </Button>
         <p className="text-center text-sm text-muted-foreground">
           New to DevSync?{' '}
-          <Link to={withNext('/register', next)} className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link
+            to={withNext('/register', next)}
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
             Create an account
           </Link>
         </p>

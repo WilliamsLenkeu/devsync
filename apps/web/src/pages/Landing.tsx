@@ -1,4 +1,12 @@
-import { Activity, Bot, KeyRound, LayoutGrid, Radio, ShieldCheck, type LucideIcon } from 'lucide-react';
+import {
+  Activity,
+  Bot,
+  KeyRound,
+  LayoutGrid,
+  Radio,
+  ShieldCheck,
+  type LucideIcon,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useDocumentTitle } from '@/components/layout/useDocumentTitle';
 import { Logo } from '@/components/layout/Logo';
@@ -53,8 +61,14 @@ export function LandingPage() {
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <header className="border-b">
-        <nav aria-label="Main" className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-          <Link to="/" className="flex items-center gap-2 rounded-md text-sm font-semibold outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+        <nav
+          aria-label="Main"
+          className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6"
+        >
+          <Link
+            to="/"
+            className="flex items-center gap-2 rounded-md text-sm font-semibold outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          >
             <Logo />
             DevSync
           </Link>
@@ -79,13 +93,16 @@ export function LandingPage() {
 
       <main>
         <section className="mx-auto max-w-6xl px-6 pt-20 pb-24 md:pt-28">
-          <p className="font-mono text-xs tracking-widest text-cyan uppercase">For dev teams and the agents they run</p>
+          <p className="font-mono text-xs tracking-widest text-cyan uppercase">
+            For dev teams and the agents they run
+          </p>
           <h1 className="mt-4 max-w-3xl text-5xl leading-[1.05] font-semibold tracking-[-0.04em] text-balance md:text-6xl">
             Plan the work with your team and your AI agents.
           </h1>
           <p className="mt-6 max-w-xl text-lg text-muted-foreground text-pretty">
-            DevSync is a task board, activity feed and real-time workspace for software teams. An API and an MCP server
-            let coding agents read tasks, update status and comment, within the scopes and role you grant them.
+            DevSync is a task board, activity feed and real-time workspace for software teams. An
+            API and an MCP server let coding agents read tasks, update status and comment, within
+            the scopes and role you grant them.
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-3">
             <Button asChild size="lg">
@@ -122,13 +139,16 @@ export function LandingPage() {
           <div className="mx-auto grid max-w-6xl gap-10 px-6 py-20 md:grid-cols-[1fr_1.2fr]">
             <div>
               <Bot className="size-5 text-cyan" aria-hidden />
-              <h2 id="agents-title" className="mt-4 text-2xl font-semibold tracking-tight text-balance">
+              <h2
+                id="agents-title"
+                className="mt-4 text-2xl font-semibold tracking-tight text-balance"
+              >
                 Connect your AI agent
               </h2>
               <p className="mt-3 text-sm text-muted-foreground text-pretty">
-                Create an API token in your workspace with only the scopes the agent needs. The token works in that
-                workspace alone, and you can revoke it at any time. Add the MCP server to your client with this
-                configuration.
+                Create an API token in your workspace with only the scopes the agent needs. The
+                token works in that workspace alone, and you can revoke it at any time. Add the MCP
+                server to your client with this configuration.
               </p>
             </div>
             <pre className="overflow-x-auto rounded-lg border bg-card p-4 font-mono text-[13px] leading-6">

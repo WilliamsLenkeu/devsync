@@ -51,7 +51,8 @@ export const useWorkspaceMembers = (workspaceId: string, enabled: boolean) =>
 export const useProjectActivity = (projectId: string) =>
   useInfiniteQuery({
     queryKey: qk.projectActivity(projectId),
-    queryFn: ({ pageParam }) => api.page<Activity>(`/projects/${projectId}/activity`, { cursor: pageParam, limit: 20 }),
+    queryFn: ({ pageParam }) =>
+      api.page<Activity>(`/projects/${projectId}/activity`, { cursor: pageParam, limit: 20 }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
@@ -59,7 +60,8 @@ export const useProjectActivity = (projectId: string) =>
 export const useCreateProject = (workspaceId: string) => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: CreateProjectBody) => api.post<Project>(`/workspaces/${workspaceId}/projects`, body),
+    mutationFn: (body: CreateProjectBody) =>
+      api.post<Project>(`/workspaces/${workspaceId}/projects`, body),
     onSuccess: () =>
       Promise.all([
         qc.invalidateQueries({ queryKey: qk.projects(workspaceId) }),

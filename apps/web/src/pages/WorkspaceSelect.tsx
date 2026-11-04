@@ -22,12 +22,23 @@ export function WorkspaceSelectPage() {
   const { state } = useLocation();
   const [createOpen, setCreateOpen] = useState(false);
 
-  const workspacesQuery = useQuery({ queryKey: qk.workspaces, queryFn: () => api.get<Workspace[]>('/workspaces') });
-  const invitationsQuery = useQuery({ queryKey: qk.myInvitations, queryFn: () => api.get<Invitation[]>('/invitations') });
+  const workspacesQuery = useQuery({
+    queryKey: qk.workspaces,
+    queryFn: () => api.get<Workspace[]>('/workspaces'),
+  });
+  const invitationsQuery = useQuery({
+    queryKey: qk.myInvitations,
+    queryFn: () => api.get<Invitation[]>('/invitations'),
+  });
 
   const respond = useMutation({
-    mutationFn: ({ invitation, action }: { invitation: Invitation; action: 'accept' | 'decline' }) =>
-      api.post(`/invitations/${invitation.id}/${action}`),
+    mutationFn: ({
+      invitation,
+      action,
+    }: {
+      invitation: Invitation;
+      action: 'accept' | 'decline';
+    }) => api.post(`/invitations/${invitation.id}/${action}`),
     onSuccess: (_data, { invitation, action }) => {
       void qc.invalidateQueries({ queryKey: qk.myInvitations });
       void qc.invalidateQueries({ queryKey: qk.workspaces });
@@ -44,15 +55,17 @@ export function WorkspaceSelectPage() {
   const workspaces = workspacesQuery.data ?? [];
   const invitations = invitationsQuery.data ?? [];
   const browsing = (state as { browse?: boolean } | null)?.browse === true;
-
-  // Auto-open the workspace used last time, unless the user came here via "All workspaces".
-  const only = workspaces.length === 1 ? workspaces[0] : undefined;
-  if (!browsing && only && invitations.length === 0 && getLastWorkspace() === only.id) {
-    return <Navigate to={`/w/${only.id}`} replace />;
-  }
-
   const error = workspacesQuery.error ?? invitationsQuery.error;
   const loading = workspacesQuery.isPending || invitationsQuery.isPending;
+
+  // Resume the last workspace (or the only one). "All workspaces" sets browse and skips this.
+  if (!browsing && !loading && !error && invitations.length === 0) {
+    const lastId = getLastWorkspace();
+    const target =
+      (lastId ? workspaces.find((w) => w.id === lastId) : undefined) ??
+      (workspaces.length === 1 ? workspaces[0] : undefined);
+    if (target) return <Navigate to={`/w/${target.id}`} replace />;
+  }
 
   return (
     <div className="mx-auto grid max-w-4xl gap-10 p-6 lg:p-8">
@@ -91,11 +104,15 @@ export function WorkspaceSelectPage() {
                 {invitations.map((inv) => {
                   const busy = respond.isPending && respond.variables?.invitation.id === inv.id;
                   return (
-                    <li key={inv.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                    <li
+                      key={inv.id}
+                      className="flex flex-wrap items-center justify-between gap-3 p-4"
+                    >
                       <div className="min-w-0">
                         <p className="truncate font-medium">{inv.workspaceName}</p>
                         <p className="text-sm text-muted-foreground">
-                          Invited by {inv.invitedBy.name} as {humanize(inv.role)} · expires {formatDate(inv.expiresAt)}
+                          Invited by {inv.invitedBy.name} as {humanize(inv.role)} · expires{' '}
+                          {formatDate(inv.expiresAt)}
                         </p>
                       </div>
                       <div className="flex gap-2">
@@ -147,7 +164,9 @@ export function WorkspaceSelectPage() {
                         <h3 className="truncate font-medium">{ws.name}</h3>
                         <Badge variant="secondary">{humanize(ws.role)}</Badge>
                       </div>
-                      <p className="mt-1 truncate font-mono text-xs text-muted-foreground">{ws.slug}</p>
+                      <p className="mt-1 truncate font-mono text-xs text-muted-foreground">
+                        {ws.slug}
+                      </p>
                       <p className="mt-4 text-sm tabular-nums text-muted-foreground">
                         {ws.memberCount} {ws.memberCount === 1 ? 'member' : 'members'}
                       </p>

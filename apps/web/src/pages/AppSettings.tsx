@@ -38,7 +38,9 @@ export function AppSettingsPage() {
             </label>
           ))}
         </div>
-        <p className="text-sm text-muted-foreground">System follows your operating system's light or dark setting.</p>
+        <p className="text-sm text-muted-foreground">
+          System follows your operating system's light or dark setting.
+        </p>
       </fieldset>
 
       <section aria-labelledby="about-title" className="grid gap-2 border-t pt-8">
@@ -46,8 +48,8 @@ export function AppSettingsPage() {
           About
         </h2>
         <p className="text-sm text-muted-foreground text-pretty">
-          DevSync is collaboration software for dev teams: boards, activity and roles, plus an API and an MCP server for
-          AI coding agents.
+          DevSync is collaboration software for dev teams: boards, activity and roles, plus an API
+          and an MCP server for AI coding agents.
         </p>
         <p className="text-sm text-muted-foreground">Signed in as {user.email}</p>
       </section>

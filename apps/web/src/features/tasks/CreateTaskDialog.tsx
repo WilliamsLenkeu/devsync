@@ -13,7 +13,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { humanize } from '@/lib/format';
 import type { ProjectMember } from '@/lib/types';
@@ -23,7 +29,11 @@ import { useCreateTask, type TaskScope } from './taskMutations';
 const NONE = 'none';
 
 const schema = z.object({
-  title: z.string().trim().min(1, 'Title is required').max(200, 'Keep the title under 200 characters'),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Title is required')
+    .max(200, 'Keep the title under 200 characters'),
   description: z.string().max(10000, 'Description is too long'),
   status: z.enum(TASK_STATUSES),
   priority: z.enum(TASK_PRIORITIES),
@@ -82,12 +92,19 @@ export function CreateTaskDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>New task</DialogTitle>
-          <DialogDescription>Tasks are numbered automatically within the project.</DialogDescription>
+          <DialogDescription>
+            Tasks are numbered automatically within the project.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="grid gap-4" noValidate>
           <div className="grid gap-1.5">
             <Label htmlFor="new-task-title">Title</Label>
-            <Input id="new-task-title" autoFocus aria-invalid={!!form.formState.errors.title} {...form.register('title')} />
+            <Input
+              id="new-task-title"
+              autoFocus
+              aria-invalid={!!form.formState.errors.title}
+              {...form.register('title')}
+            />
             {form.formState.errors.title && (
               <p role="alert" className="text-xs text-destructive">
                 {form.formState.errors.title.message}
@@ -171,7 +188,9 @@ export function CreateTaskDialog({
           <div className="grid gap-1.5">
             <Label htmlFor="new-task-labels">Labels</Label>
             <Input id="new-task-labels" placeholder="bug, frontend" {...form.register('labels')} />
-            <p className="text-xs text-muted-foreground">Comma-separated. Colors are assigned automatically.</p>
+            <p className="text-xs text-muted-foreground">
+              Comma-separated. Colors are assigned automatically.
+            </p>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RealtimeClient, type RealtimeHandlers } from './client';
+import { RealtimeClient, type RealtimeHandlers, type RealtimeStatus } from './client';
 import type { DomainEvent } from './events';
 
 class FakeSocket {
@@ -43,14 +43,22 @@ const event = (id: string): DomainEvent => ({
   at: '2026-01-01T00:00:00.000Z',
 });
 
-const handlers = (): { [K in keyof RealtimeHandlers]: ReturnType<typeof vi.fn> } => ({
-  onStatus: vi.fn(),
-  onSubscribed: vi.fn(),
-  onEvent: vi.fn(),
-  onReconnect: vi.fn(),
+type Handlers = {
+  [K in keyof RealtimeHandlers]: ReturnType<typeof vi.fn<RealtimeHandlers[K]>>;
+};
+
+const handlers = (): Handlers => ({
+  onStatus: vi.fn<(status: RealtimeStatus) => void>(),
+  onSubscribed: vi.fn<(workspaceId: string, presence: string[]) => void>(),
+  onEvent: vi.fn<(event: DomainEvent) => void>(),
+  onReconnect: vi.fn<() => void>(),
 });
 
-const last = () => FakeSocket.instances[FakeSocket.instances.length - 1];
+const last = (): FakeSocket => {
+  const sock = FakeSocket.instances[FakeSocket.instances.length - 1];
+  if (!sock) throw new Error('expected a FakeSocket instance');
+  return sock;
+};
 
 describe('RealtimeClient', () => {
   beforeEach(() => {

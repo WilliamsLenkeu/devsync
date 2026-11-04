@@ -41,7 +41,9 @@ const project: Project = {
 
 const renderPage = (ui: ReactNode) =>
   render(
-    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+    >
       <MemoryRouter>{ui}</MemoryRouter>
     </QueryClientProvider>,
   );
@@ -70,7 +72,9 @@ describe('ProjectListPage', () => {
     mocks.post.mockResolvedValue({ ...project, id: 'p2', name: 'Dev Sync Web', identifier: 'DSW' });
 
     renderPage(<ProjectListPage />);
-    await user.click((await screen.findAllByRole('button', { name: /new project/i })) [0] as HTMLElement);
+    await user.click(
+      (await screen.findAllByRole('button', { name: /new project/i }))[0] as HTMLElement,
+    );
     const dialog = screen.getByRole('dialog');
     await user.type(within(dialog).getByLabelText('Name'), 'Dev Sync Web');
     expect(within(dialog).getByLabelText('Identifier')).toHaveValue('DSW');

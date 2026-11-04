@@ -22,7 +22,8 @@ export function ProjectOverviewPage() {
       </div>
     );
   }
-  if (project.isError) return <ErrorState error={project.error} onRetry={() => void project.refetch()} />;
+  if (project.isError)
+    return <ErrorState error={project.error} onRetry={() => void project.refetch()} />;
 
   const p = project.data;
   return (

@@ -3,7 +3,13 @@ import { ArrowDownUp, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { humanize } from '@/lib/format';
 import type { ProjectMember } from '@/lib/types';
 import { isManualOrder, type BoardFilters, type SortKey } from './boardLogic';
@@ -43,7 +49,10 @@ function DebouncedInput({
 
   return (
     <div className="relative">
-      <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+      <Search
+        className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+        aria-hidden
+      />
       <Input
         type={type}
         aria-label={label}
@@ -75,7 +84,12 @@ export function BoardToolbar({
         value={filters.q}
         onCommit={(q) => onChange({ q })}
       />
-      <Select value={filters.priority || ALL} onValueChange={(v) => onChange({ priority: v === ALL ? '' : (v as BoardFilters['priority']) })}>
+      <Select
+        value={filters.priority || ALL}
+        onValueChange={(v) =>
+          onChange({ priority: v === ALL ? '' : (v as BoardFilters['priority']) })
+        }
+      >
         <SelectTrigger size="sm" aria-label="Filter by priority" className="w-36">
           <SelectValue />
         </SelectTrigger>
@@ -88,7 +102,10 @@ export function BoardToolbar({
           ))}
         </SelectContent>
       </Select>
-      <Select value={filters.assignee || ALL} onValueChange={(v) => onChange({ assignee: v === ALL ? '' : v })}>
+      <Select
+        value={filters.assignee || ALL}
+        onValueChange={(v) => onChange({ assignee: v === ALL ? '' : v })}
+      >
         <SelectTrigger size="sm" aria-label="Filter by assignee" className="w-44">
           <SelectValue />
         </SelectTrigger>

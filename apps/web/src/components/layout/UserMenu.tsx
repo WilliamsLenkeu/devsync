@@ -25,7 +25,12 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full" aria-label={`Account menu for ${user.name}`}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full"
+          aria-label={`Account menu for ${user.name}`}
+        >
           <UserAvatar user={user} className="size-7" />
         </Button>
       </DropdownMenuTrigger>
