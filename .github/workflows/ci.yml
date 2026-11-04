@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24'
+  DATABASE_URL: postgresql://devsync:devsync@localhost:5432/devsync_test
+  JWT_ACCESS_SECRET: ci-secret-ci-secret-ci-secret-ci-secret
+  RATE_LIMIT_ENABLED: 'false'
+  COOKIE_SECURE: 'false'
+  WEB_ORIGIN: http://localhost:5173
+  NODE_ENV: test
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: devsync
+          POSTGRES_PASSWORD: devsync
+          POSTGRES_DB: devsync_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U devsync"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          # version from package.json packageManager
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @devsync/api db:generate
+      - run: pnpm --filter @devsync/api db:deploy
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm exec prettier --check .
+      - run: pnpm test
+      - run: pnpm --filter @devsync/api build
+      - run: pnpm --filter @devsync/web build
+
+  e2e:
+    # Opt-in: only when Playwright is configured in the repo.
+    if: ${{ hashFiles('apps/web/playwright.config.ts') != '' }}
+    needs: check
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: devsync
+          POSTGRES_PASSWORD: devsync
+          POSTGRES_DB: devsync
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U devsync"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://devsync:devsync@localhost:5432/devsync
+      JWT_ACCESS_SECRET: ci-secret-ci-secret-ci-secret-ci-secret
+      COOKIE_SECURE: 'false'
+      WEB_ORIGIN: http://localhost:5173
+      RATE_LIMIT_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @devsync/api db:generate
+      - run: pnpm --filter @devsync/api db:deploy
+      - run: pnpm --filter @devsync/api db:seed
+      - run: pnpm --filter @devsync/web exec playwright install --with-deps chromium
+      - name: Start API + web
+        run: |
+          pnpm --filter @devsync/api start &
+          pnpm --filter @devsync/web preview --host 127.0.0.1 --port 5173 &
+          npx --yes wait-on http://127.0.0.1:3000/health http://127.0.0.1:5173
+      - run: pnpm --filter @devsync/web e2e
+
+  images:
+    # GitHub runners have Docker; locally use wslc / wslc-compose instead.
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f apps/api/Dockerfile -t devsync-api:ci .
+      - run: docker build -f apps/web/Dockerfile -t devsync-web:ci .

@@ -1,5 +1,10 @@
 name: devsync
 
+# Limites wslc-compose : pas de healthcheck, `depends_on` retombe sur "started".
+# - L'API réessaie la connexion DB au démarrage (20 × 2 s).
+# - `migrate` est un one-shot à lancer AVANT le premier `api` (voir docs/procedures.md).
+# - `db` tourne en stack de dev : ne jamais le recréer depuis la stack applicative.
+
 services:
   db:
     image: postgres:16-alpine
@@ -11,6 +16,47 @@ services:
       - '${POSTGRES_PORT:-5432}:5432'
     volumes:
       - devsync-db:/var/lib/postgresql/data
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: migrate
+    image: devsync-migrate:latest
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-devsync}:${POSTGRES_PASSWORD:-devsync}@db:5432/${STACK_DB:-devsync_stack}
+    depends_on:
+      - db
+    restart: 'no'
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: devsync-api:latest
+    environment:
+      NODE_ENV: production
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:8080}
+      COOKIE_SECURE: 'true'
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-devsync}:${POSTGRES_PASSWORD:-devsync}@db:5432/${STACK_DB:-devsync_stack}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET requis (voir .env.example)}
+    ports:
+      - '${API_PORT:-3100}:3000'
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: devsync-web:latest
+    ports:
+      - '${WEB_PORT:-8080}:80'
+    depends_on:
+      - api
+    restart: unless-stopped
 
 volumes:
   devsync-db:

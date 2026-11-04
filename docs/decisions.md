@@ -38,3 +38,11 @@ Une seule `tsconfig.base.json` + `eslint.config.js` Ã  la racine suffisent. Un p
 - Dashboard : uniquement les projets ACTIVE ; `inProgress` = statut IN_PROGRESS seul.
 - Tokens API : `token:manage` exige MEMBER, donc un VIEWER ne peut pas créer de token. Événements à `audience` (notifications) livrés sans revérification d'appartenance (ponytail : une notification émise juste avant un retrait peut encore arriver).
 - Refresh token : rotation, réutilisation d'un token déjà roté ? révocation de toute la famille.
+
+
+## D7 — Conteneurs / CI (2026-11-04)
+
+- Build API : esbuild bundle ESM (dist/server.js), deps natives/runtime externalisées (@prisma/*, rgon2, pg, Fastify…). @devsync/shared est bundlé.
+- Dockerfiles multi-stage, contexte = racine monorepo. Compose : services migrate (one-shot), pi, web en plus de db ; ports host 3100/8080 pour ne pas croiser le dev Vite. Pas de healthcheck (wslc).
+- CI GitHub Actions : Postgres service, typecheck/lint/prettier/test/build + jobs images Docker et e2e conditionnel (si playwright.config.ts).
+

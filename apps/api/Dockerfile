@@ -16,11 +16,13 @@ FROM builder AS migrate
 CMD ["pnpm", "--filter", "@devsync/api", "db:deploy"]
 
 # Runtime : bundle dist/server.js + dépendances de production uniquement.
+# `dist/` est dans .gitignore → pnpm deploy ne le copie pas ; on le prend depuis le builder.
 FROM node:24-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
-COPY --from=builder --chown=node:node /out/package.json /out/node_modules ./
-COPY --from=builder --chown=node:node /out/dist ./dist
+COPY --from=builder --chown=node:node /out/package.json ./
+COPY --from=builder --chown=node:node /out/node_modules ./node_modules
+COPY --from=builder --chown=node:node /repo/apps/api/dist ./dist
 USER node
 EXPOSE 3000
 CMD ["node", "dist/server.js"]
