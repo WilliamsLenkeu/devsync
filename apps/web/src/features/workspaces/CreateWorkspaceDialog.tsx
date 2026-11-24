@@ -68,7 +68,7 @@ export function CreateWorkspaceDialog({
         <DialogHeader>
           <DialogTitle>Create workspace</DialogTitle>
           <DialogDescription>
-            A workspace holds your projects, members and API tokens.
+            Projects, members and API tokens live in a workspace.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} noValidate className="grid gap-4">

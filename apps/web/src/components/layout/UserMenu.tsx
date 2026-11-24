@@ -28,16 +28,16 @@ export function UserMenu() {
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-full"
+          className="size-11 rounded-full transition-colors duration-150 md:size-8"
           aria-label={`Account menu for ${user.name}`}
         >
-          <UserAvatar user={user} className="size-7" />
+          <UserAvatar user={user} className="size-6" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="grid gap-0.5">
-          <span className="truncate">{user.name}</span>
-          <span className="truncate font-normal text-muted-foreground">{user.email}</span>
+        <DropdownMenuLabel className="grid gap-0.5 font-normal">
+          <span className="truncate font-medium">{user.name}</span>
+          <span className="truncate text-muted-foreground">{user.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>

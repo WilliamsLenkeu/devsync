@@ -33,15 +33,23 @@ const schema = z.object({
 });
 type Values = z.infer<typeof schema>;
 
+/**
+ * Design Read: workspace admin strip, signal-console,
+ * dial ENERGY 2 / RHYTHM 2 / MOTION 1.
+ * Job: rename, then (clearly separated) destroy. Form group + danger band.
+ */
 export function WorkspaceSettingsPage() {
   useDocumentTitle('Workspace settings');
   const { workspace, can } = useWorkspace();
 
   return (
-    <div className="mx-auto grid max-w-2xl gap-10 p-6">
-      <PageHeader title="Workspace settings" description="Name, description and danger zone." />
+    <div className="mx-auto grid max-w-2xl gap-10 p-4 sm:p-6 lg:p-8">
+      <PageHeader
+        title="Workspace settings"
+        description="Name, description, and irreversible actions."
+      />
       {can('workspace:update') && <GeneralForm workspace={workspace} />}
-      {can('workspace:delete') && <DeleteWorkspace workspace={workspace} />}
+      {can('workspace:delete') && <DangerZone workspace={workspace} />}
     </div>
   );
 }
@@ -77,15 +85,19 @@ function GeneralForm({ workspace }: { workspace: Workspace }) {
   });
 
   return (
-    <section aria-labelledby="ws-general" className="grid gap-5">
+    <section aria-labelledby="ws-general" className="grid gap-5 border border-border p-5">
       <div>
-        <h2 id="ws-general" className="text-sm font-medium">
+        <h2 id="ws-general" className="text-sm font-semibold tracking-tight">
           General
         </h2>
-        <p className="text-sm text-muted-foreground">Slug stays fixed after creation.</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          The slug is fixed after creation.
+        </p>
       </div>
       <form onSubmit={onSubmit} noValidate className="grid gap-4">
-        {errors.root && <FormAlert message={errors.root.message ?? 'Could not update the workspace'} />}
+        {errors.root && (
+          <FormAlert message={errors.root.message ?? 'Could not update the workspace'} />
+        )}
         <Field id="ws-name" label="Name" error={errors.name?.message}>
           <Input
             id="ws-name"
@@ -94,7 +106,11 @@ function GeneralForm({ workspace }: { workspace: Workspace }) {
             {...register('name')}
           />
         </Field>
-        <Field id="ws-description" label="Description (optional)" error={errors.description?.message}>
+        <Field
+          id="ws-description"
+          label="Description (optional)"
+          error={errors.description?.message}
+        >
           <Textarea
             id="ws-description"
             rows={3}
@@ -104,11 +120,11 @@ function GeneralForm({ workspace }: { workspace: Workspace }) {
           />
         </Field>
         <p className="text-xs text-muted-foreground">
-          Slug: <span className="font-mono">{workspace.slug}</span>
+          Slug: <span className="font-mono text-foreground">{workspace.slug}</span>
         </p>
         <div>
           <Button type="submit" disabled={!isDirty || isSubmitting}>
-            {isSubmitting ? 'Saving…' : 'Save changes'}
+            {isSubmitting ? 'Saving…' : 'Save workspace'}
           </Button>
         </div>
       </form>
@@ -116,7 +132,7 @@ function GeneralForm({ workspace }: { workspace: Workspace }) {
   );
 }
 
-function DeleteWorkspace({ workspace }: { workspace: Workspace }) {
+function DangerZone({ workspace }: { workspace: Workspace }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [confirmName, setConfirmName] = useState('');
@@ -134,54 +150,63 @@ function DeleteWorkspace({ workspace }: { workspace: Workspace }) {
   });
 
   return (
-    <section aria-labelledby="ws-danger" className="grid gap-4 border-t border-destructive/20 pt-10">
-      <div>
-        <h2 id="ws-danger" className="text-sm font-medium text-destructive">
+    <section aria-labelledby="ws-danger" className="grid gap-4">
+      <div className="border-t border-destructive/40 pt-8">
+        <h2 id="ws-danger" className="text-sm font-semibold tracking-tight text-destructive">
           Danger zone
         </h2>
-        <p className="text-sm text-muted-foreground">
-          Permanently delete this workspace, its projects, tasks and tokens. This cannot be undone.
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Permanently delete this workspace, its projects, tasks, and tokens. This cannot be undone.
         </p>
       </div>
-      <AlertDialog
-        open={open}
-        onOpenChange={(next) => {
-          setOpen(next);
-          if (!next) setConfirmName('');
-        }}
-      >
-        <AlertDialogTrigger asChild>
-          <Button variant="destructive">Delete workspace</Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete {workspace.name}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Type <span className="font-medium text-foreground">{workspace.name}</span> to confirm.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <Input
-            value={confirmName}
-            onChange={(e) => setConfirmName(e.target.value)}
-            aria-label="Workspace name confirmation"
-            autoComplete="off"
-            placeholder={workspace.name}
-          />
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={!matches || remove.isPending}
-              onClick={(e) => {
-                e.preventDefault();
-                remove.mutate();
-              }}
-            >
-              {remove.isPending ? 'Deleting…' : 'Delete forever'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <div className="flex flex-col gap-4 border border-destructive bg-destructive/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-foreground">
+          Delete <span className="font-medium">{workspace.name}</span> and all of its data.
+        </p>
+        <AlertDialog
+          open={open}
+          onOpenChange={(next) => {
+            setOpen(next);
+            if (!next) setConfirmName('');
+          }}
+        >
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" className="shrink-0">
+              Delete workspace
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete {workspace.name}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Type <span className="font-medium text-foreground">{workspace.name}</span> to confirm
+                permanent deletion.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <Input
+              value={confirmName}
+              onChange={(e) => setConfirmName(e.target.value)}
+              aria-label="Workspace name confirmation"
+              autoComplete="off"
+              autoFocus
+              placeholder={workspace.name}
+            />
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                disabled={!matches || remove.isPending}
+                onClick={(e) => {
+                  e.preventDefault();
+                  remove.mutate();
+                }}
+              >
+                {remove.isPending ? 'Deleting…' : 'Delete forever'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </section>
   );
 }

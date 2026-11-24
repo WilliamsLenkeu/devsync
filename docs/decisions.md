@@ -51,3 +51,9 @@ Une seule `tsconfig.base.json` + `eslint.config.js` à la racine suffisent. Un p
 - `apps/mcp-server` est un processus stdio indépendant : 9 tools MCP → `Authorization: Bearer dsk_…` sur `/api/agent/*`. Pas d'accès DB, pas de ré-implémentation d'authz (scopes ∩ rôle déjà côté API).
 - `TASK_STATUSES` / `TASK_PRIORITIES` dupliqués localement (`src/constants.ts`) tant que `@devsync/shared` n'est pas une dépendance du package.
 
+## D9 — Direction UI (2026-11-05)
+
+- v1 atelier/paper et v2 lime-console rejetées (stérile / trop gadget).
+- **v3** (recherche Linear/Plane density + landing scroll demos 2025/26) : dark dense hairlines, accent cuivre, Bricolage Grotesque, landing = **reel pin/scrub GSAP** avec screenshots réels (`/screenshots`).
+- App ENERGY 2 ; landing ENERGY/MOTION 3. MCP secondaire.
+

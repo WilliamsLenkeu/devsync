@@ -15,10 +15,12 @@ export function Field({
 }) {
   return (
     <div className="grid gap-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className="text-sm font-medium">
+        {label}
+      </Label>
       {children}
       {error && (
-        <p id={`${id}-error`} className="text-sm text-destructive">
+        <p id={`${id}-error`} role="alert" className="text-sm text-destructive">
           {error}
         </p>
       )}
@@ -30,7 +32,7 @@ export function FormAlert({ message }: { message: string }) {
   return (
     <p
       role="alert"
-      className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+      className="rounded-md border border-destructive/35 bg-destructive/8 px-3 py-2.5 text-sm leading-snug text-destructive"
     >
       {message}
     </p>

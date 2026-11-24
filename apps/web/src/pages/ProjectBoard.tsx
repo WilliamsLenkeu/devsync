@@ -1,4 +1,4 @@
-import { ArrowLeft, KanbanSquare, Plus } from 'lucide-react';
+import { Archive, ArrowLeft, KanbanSquare, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { EmptyState, ErrorState, PageHeader } from '@/components/states';
@@ -52,13 +52,14 @@ export function ProjectBoardPage() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col p-6">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-6">
       <PageHeader
         title={project.data?.name ?? 'Board'}
         description={
           project.data && (
             <>
-              <span className="font-mono">{project.data.identifier}</span> · Board
+              <span className="font-mono text-foreground/80">{project.data.identifier}</span>
+              <span className="text-muted-foreground"> · Board</span>
             </>
           )
         }
@@ -69,7 +70,7 @@ export function ProjectBoardPage() {
               className={buttonVariants({ variant: 'outline', size: 'sm' })}
             >
               <ArrowLeft aria-hidden />
-              Project overview
+              Overview
             </Link>
             {canWrite && (
               <Button size="sm" onClick={() => setCreating(true)}>
@@ -82,15 +83,21 @@ export function ProjectBoardPage() {
       />
 
       {archived && (
-        <p
+        <div
           role="status"
-          className="mb-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm"
+          className="mb-4 flex items-start gap-2.5 rounded-md border border-border bg-muted/40 px-3 py-2.5 text-sm"
         >
-          This project is archived. The board is read-only.
-        </p>
+          <Archive className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+          <div>
+            <p className="font-medium">Project archived</p>
+            <p className="text-muted-foreground">
+              The board is read-only. Restore the project to edit tasks again.
+            </p>
+          </div>
+        </div>
       )}
 
-      <div className="mb-3">
+      <div className="mb-3 shrink-0">
         <BoardToolbar
           filters={filters}
           members={members.data ?? []}
@@ -98,41 +105,54 @@ export function ProjectBoardPage() {
           onClear={clearFilters}
         />
         {!manual && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Reordering inside a column is disabled while filters or a custom sort are active. Moving
-            cards between columns still works.
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Column reordering is off while filters or a custom sort are active. Cross-column moves
+            still work.
           </p>
         )}
       </div>
 
-      {tasks.data ? (
-        tasks.data.length === 0 && !hasActiveFilters(filters) ? (
-          <EmptyState
-            icon={KanbanSquare}
-            title="No tasks yet"
-            description="Create the first task to start the board."
-            action={
-              canWrite && (
-                <Button size="sm" onClick={() => setCreating(true)}>
-                  <Plus aria-hidden />
-                  New task
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        {tasks.data ? (
+          tasks.data.length === 0 && !hasActiveFilters(filters) ? (
+            <EmptyState
+              icon={KanbanSquare}
+              title="No tasks yet"
+              description="Create the first task to start the board."
+              action={
+                canWrite && (
+                  <Button size="sm" onClick={() => setCreating(true)}>
+                    <Plus aria-hidden />
+                    New task
+                  </Button>
+                )
+              }
+            />
+          ) : tasks.data.length === 0 ? (
+            <EmptyState
+              icon={KanbanSquare}
+              title="No matching tasks"
+              description="Nothing matches these filters. Clear them to see the full board."
+              action={
+                <Button size="sm" variant="outline" onClick={clearFilters}>
+                  Clear filters
                 </Button>
-              )
-            }
-          />
+              }
+            />
+          ) : (
+            <KanbanBoard
+              tasks={tasks.data}
+              canDrag={canWrite}
+              manualOrder={manual}
+              onMove={(request) => move.mutate(request)}
+            />
+          )
+        ) : tasks.isError ? (
+          <ErrorState error={tasks.error} onRetry={() => void tasks.refetch()} />
         ) : (
-          <KanbanBoard
-            tasks={tasks.data}
-            canDrag={canWrite}
-            manualOrder={manual}
-            onMove={(request) => move.mutate(request)}
-          />
-        )
-      ) : tasks.isError ? (
-        <ErrorState error={tasks.error} onRetry={() => void tasks.refetch()} />
-      ) : (
-        <BoardSkeleton />
-      )}
+          <BoardSkeleton />
+        )}
+      </div>
 
       {canWrite && (
         <CreateTaskDialog
@@ -148,14 +168,22 @@ export function ProjectBoardPage() {
 
 function BoardSkeleton() {
   return (
-    <div className="flex gap-3 overflow-hidden" aria-busy="true" aria-label="Loading board">
+    <div
+      className="flex min-h-0 gap-2 overflow-hidden"
+      aria-busy="true"
+      aria-label="Loading board"
+    >
       {Array.from({ length: 5 }, (_, i) => (
-        <div key={i} className="w-72 shrink-0 space-y-2 sm:w-80">
-          <Skeleton className="h-5 w-24" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
+        <div key={i} className="w-[16.5rem] shrink-0 space-y-2 sm:w-72">
+          <Skeleton className="h-4 w-20" />
+          <div className="space-y-1 rounded-md bg-muted/40 p-1">
+            <Skeleton className="h-16 w-full rounded-md" />
+            <Skeleton className="h-16 w-full rounded-md" />
+            <Skeleton className="h-14 w-full rounded-md" />
+          </div>
         </div>
       ))}
+      <p className="sr-only">Loading board…</p>
     </div>
   );
 }

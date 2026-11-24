@@ -4,29 +4,40 @@ import { humanize, timeAgo } from '@/lib/format';
 import type { Project } from '@/lib/types';
 import { percent, ProgressBar } from './ProgressBar';
 
+/**
+ * Interactive project row (whole row is the hit target).
+ * Flat band, not a card tile. Reason: list scan > equal card grid (DESIGN.md).
+ */
 export function ProjectCard({ project, workspaceId }: { project: Project; workspaceId: string }) {
   const { total, done } = project.taskCounts;
+  const archived = project.status === 'ARCHIVED';
+
   return (
     <Link
       to={`/w/${workspaceId}/projects/${project.id}`}
-      className="group flex h-full flex-col gap-4 rounded-xl border bg-card p-5 shadow-sm transition-colors outline-none hover:border-primary/40 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      className="group grid grid-cols-1 gap-2.5 border-b border-border py-3 outline-none motion-safe:transition-colors motion-safe:duration-150 hover:bg-accent/25 focus-visible:bg-accent/35 sm:grid-cols-[minmax(0,1fr)_11rem_7rem] sm:items-center sm:gap-6"
     >
-      <div className="flex items-center justify-between gap-2">
-        <Badge variant="outline" className="font-mono">
-          {project.identifier}
-        </Badge>
-        <Badge variant={project.status === 'ARCHIVED' ? 'secondary' : 'default'}>
-          {humanize(project.status)}
-        </Badge>
-      </div>
       <div className="min-w-0">
-        <h2 className="truncate font-semibold group-hover:text-primary">{project.name}</h2>
-        <p className="mt-1 line-clamp-2 min-h-10 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-mono text-[11px] font-medium tracking-tight text-foreground/65">
+            {project.identifier}
+          </span>
+          {archived && (
+            <Badge variant="secondary" className="font-normal">
+              {humanize(project.status)}
+            </Badge>
+          )}
+        </div>
+        <h2 className="mt-0.5 truncate text-sm font-semibold tracking-tight group-hover:text-primary">
+          {project.name}
+        </h2>
+        <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
           {project.description ?? 'No description'}
         </p>
       </div>
-      <div className="mt-auto space-y-2">
-        <div className="flex justify-between text-xs text-muted-foreground">
+
+      <div className="min-w-0 space-y-1.5">
+        <div className="flex justify-between font-mono text-[11px] tabular-nums text-muted-foreground">
           <span>
             {done} of {total} done
           </span>
@@ -34,7 +45,8 @@ export function ProjectCard({ project, workspaceId }: { project: Project; worksp
         </div>
         <ProgressBar done={done} total={total} />
       </div>
-      <p className="text-xs text-muted-foreground">Updated {timeAgo(project.updatedAt)}</p>
+
+      <p className="text-xs text-muted-foreground sm:text-right">Updated {timeAgo(project.updatedAt)}</p>
     </Link>
   );
 }

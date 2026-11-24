@@ -2,10 +2,17 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { History } from 'lucide-react';
 import { useState } from 'react';
 import { ActivityItem } from '@/features/activity/ActivityItem';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useDocumentTitle } from '@/components/layout/useDocumentTitle';
 import { EmptyState, ErrorState, PageHeader } from '@/components/states';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/api';
 import { qk } from '@/lib/queryKeys';
 import { useWorkspace } from '@/lib/workspace';
@@ -13,7 +20,13 @@ import type { Activity, Project } from '@/lib/types';
 
 const ALL = 'all';
 
+/**
+ * Design Read: workspace change feed, signal-console,
+ * dial ENERGY 2 / RHYTHM 2 / MOTION 1.
+ * Job: scan recent events, filter by project. Flat dense rows.
+ */
 export function ActivityPage() {
+  useDocumentTitle('Activity');
   const { workspace } = useWorkspace();
   const wid = workspace.id;
   const [filter, setFilter] = useState(ALL);
@@ -26,7 +39,11 @@ export function ActivityPage() {
   const feed = useInfiniteQuery({
     queryKey: [...qk.activity(wid), filter],
     queryFn: ({ pageParam }) =>
-      api.page<Activity>(`/workspaces/${wid}/activity`, { projectId, cursor: pageParam, limit: 30 }),
+      api.page<Activity>(`/workspaces/${wid}/activity`, {
+        projectId,
+        cursor: pageParam,
+        limit: 30,
+      }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
@@ -34,10 +51,10 @@ export function ActivityPage() {
   const items = feed.data?.pages.flatMap((p) => p.data) ?? [];
 
   return (
-    <div className="mx-auto max-w-3xl p-6">
+    <div className="mx-auto max-w-3xl p-4 sm:p-6 lg:p-8">
       <PageHeader
         title="Activity"
-        description="What happened in this workspace, most recent first."
+        description="Recent changes across projects, tasks, and members."
         actions={
           <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="w-48" aria-label="Filter by project">
@@ -56,9 +73,9 @@ export function ActivityPage() {
       />
 
       {feed.isPending && (
-        <ul className="divide-y" aria-busy="true" aria-label="Loading activity">
+        <ul className="divide-y border-y" aria-busy="true" aria-label="Loading activity">
           {Array.from({ length: 6 }, (_, i) => (
-            <li key={i} className="flex items-center gap-3 py-3">
+            <li key={i} className="flex items-center gap-3 py-2.5">
               <Skeleton className="size-7 rounded-full" />
               <Skeleton className="h-4 flex-1" />
             </li>
@@ -72,25 +89,34 @@ export function ActivityPage() {
         <EmptyState
           icon={History}
           title="No activity yet"
-          description="Changes to projects, tasks and members will show up here."
+          description={
+            filter === ALL
+              ? 'Updates to projects, tasks, and members will show up here.'
+              : 'Nothing happened in this project yet.'
+          }
         />
       )}
 
       {items.length > 0 && (
-        <>
-          <ul className="divide-y">
+        <div className="grid gap-4">
+          <ul className="divide-y border-y">
             {items.map((a) => (
               <ActivityItem key={a.id} activity={a} />
             ))}
           </ul>
           {feed.hasNextPage && (
-            <div className="flex justify-center pt-6">
-              <Button variant="outline" onClick={() => void feed.fetchNextPage()} disabled={feed.isFetchingNextPage}>
-                {feed.isFetchingNextPage ? 'Loading…' : 'Load more'}
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void feed.fetchNextPage()}
+                disabled={feed.isFetchingNextPage}
+              >
+                {feed.isFetchingNextPage ? 'Loading…' : 'Load older activity'}
               </Button>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

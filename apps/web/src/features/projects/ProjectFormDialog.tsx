@@ -43,8 +43,8 @@ export function ProjectFormDialog({
           <DialogTitle>{project ? 'Edit project' : 'New project'}</DialogTitle>
           <DialogDescription>
             {project
-              ? 'Update the name and description.'
-              : 'Projects group tasks on a Kanban board.'}
+              ? 'Update the name and description. The identifier cannot be changed.'
+              : 'A short identifier prefixes every task key on the board (e.g. WEB-12).'}
           </DialogDescription>
         </DialogHeader>
         <ProjectForm project={project} onSubmit={onSubmit} onDone={() => onOpenChange(false)} />
@@ -90,18 +90,28 @@ function ProjectForm({
     }
   };
 
+  const sanitizeIdentifier = (raw: string) =>
+    raw
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .slice(0, 6);
+
   return (
     <form onSubmit={handleSubmit(submit)} noValidate className="grid gap-4">
       <div className="grid gap-2">
         <Label htmlFor="project-name">Name</Label>
         <Input
           id="project-name"
+          placeholder="Customer portal"
+          autoComplete="off"
           aria-invalid={!!errors.name}
           aria-describedby={errors.name ? 'project-name-error' : undefined}
           {...register('name', {
             onChange: (e: ChangeEvent<HTMLInputElement>) => {
               if (!project && !identifierTouched.current)
-                setValue('identifier', suggestIdentifier(e.target.value));
+                setValue('identifier', suggestIdentifier(e.target.value), {
+                  shouldValidate: !!e.target.value,
+                });
             },
           })}
         />
@@ -117,14 +127,29 @@ function ProjectForm({
           <Label htmlFor="project-identifier">Identifier</Label>
           <Input
             id="project-identifier"
-            className="font-mono"
+            className="font-mono uppercase tracking-wide"
+            placeholder="WEB"
+            maxLength={6}
+            autoComplete="off"
+            spellCheck={false}
             aria-invalid={!!errors.identifier}
-            aria-describedby="project-identifier-hint project-identifier-error"
-            {...register('identifier', { onChange: () => (identifierTouched.current = true) })}
+            aria-describedby={
+              errors.identifier
+                ? 'project-identifier-hint project-identifier-error'
+                : 'project-identifier-hint'
+            }
+            {...register('identifier', {
+              onChange: (e: ChangeEvent<HTMLInputElement>) => {
+                identifierTouched.current = true;
+                setValue('identifier', sanitizeIdentifier(e.target.value), {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              },
+            })}
           />
           <p id="project-identifier-hint" className="text-xs text-muted-foreground">
-            Prefix of task keys, e.g. WEB-12. 2 to 6 uppercase letters or digits. Cannot be changed
-            later.
+            2–6 characters, starts with a letter. Used in task keys and cannot be changed later.
           </p>
           {errors.identifier && (
             <p id="project-identifier-error" className="text-sm text-destructive">
@@ -135,10 +160,21 @@ function ProjectForm({
       )}
 
       <div className="grid gap-2">
-        <Label htmlFor="project-description">Description</Label>
-        <Textarea id="project-description" rows={3} {...register('description')} />
+        <Label htmlFor="project-description">
+          Description <span className="font-normal text-muted-foreground">(optional)</span>
+        </Label>
+        <Textarea
+          id="project-description"
+          rows={3}
+          placeholder="What this project covers…"
+          aria-invalid={!!errors.description}
+          aria-describedby={errors.description ? 'project-description-error' : undefined}
+          {...register('description')}
+        />
         {errors.description && (
-          <p className="text-sm text-destructive">{errors.description.message}</p>
+          <p id="project-description-error" className="text-sm text-destructive">
+            {errors.description.message}
+          </p>
         )}
       </div>
 

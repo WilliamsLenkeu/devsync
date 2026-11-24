@@ -1,4 +1,4 @@
-import { ArrowLeft, Archive, ArchiveRestore, Pencil } from 'lucide-react';
+import { ArrowLeft, Archive, ArchiveRestore, LayoutGrid, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -43,30 +43,37 @@ export function ProjectHeader({ project, canManage }: { project: Project; canMan
     );
 
   return (
-    <header className="flex flex-col gap-4 pb-6 md:flex-row md:items-start md:justify-between">
+    <header className="flex flex-col gap-4 border-b border-border pb-5 md:flex-row md:items-end md:justify-between">
       <div className="min-w-0">
         <Link
           to={`/w/${project.workspaceId}/projects`}
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground motion-safe:transition-colors motion-safe:duration-150 hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" aria-hidden />
           Projects
         </Link>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="font-mono">
+        <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <span className="font-mono text-[11px] font-semibold tracking-tight text-foreground/70">
             {project.identifier}
-          </Badge>
-          <Badge variant={archived ? 'secondary' : 'default'}>{humanize(project.status)}</Badge>
+          </span>
+          <Badge variant={archived ? 'secondary' : 'outline'}>{humanize(project.status)}</Badge>
         </div>
-        <h1 className="mt-2 truncate text-xl font-semibold tracking-tight">{project.name}</h1>
-        {project.description && (
-          <p className="mt-1 max-w-prose text-sm text-muted-foreground">{project.description}</p>
-        )}
+        <h1 className="mt-1.5 truncate text-xl font-semibold tracking-tight text-balance">
+          {project.name}
+        </h1>
+        {project.description ? (
+          <p className="mt-1 max-w-prose text-sm text-pretty text-muted-foreground">
+            {project.description}
+          </p>
+        ) : null}
       </div>
 
-      <div className="flex shrink-0 flex-wrap gap-2">
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
         <Button asChild>
-          <Link to={boardPath}>Open board</Link>
+          <Link to={boardPath}>
+            <LayoutGrid aria-hidden />
+            Open board
+          </Link>
         </Button>
         {canManage && (
           <>

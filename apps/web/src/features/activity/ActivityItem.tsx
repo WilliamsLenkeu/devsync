@@ -23,11 +23,18 @@ const userName = (v: unknown) => (isUser(v) ? v.name : 'Someone');
 const statusLabel = (v: unknown) =>
   typeof v === 'string' && Object.hasOwn(STATUS_LABEL, v) ? STATUS_LABEL[v as TaskStatus] : str(v);
 
+const taskLabel = (d: Data) => {
+  const key = str(d.taskKey);
+  const title = str(d.title);
+  if (key && title) return `${key} · ${title}`;
+  return `${key} ${title}`.trim();
+};
+
 /** One readable sentence per activity type, built from the `data` snapshot (docs/api-contract.md). */
 export function describeActivity(activity: Activity): string {
   const d = activity.data;
   const who = activity.actor?.name ?? 'Someone';
-  const task = `${str(d.taskKey)} ${str(d.title)}`.trim();
+  const task = taskLabel(d);
 
   switch (activity.type) {
     case 'PROJECT_CREATED':
@@ -45,15 +52,17 @@ export function describeActivity(activity: Activity): string {
     case 'TASK_STATUS_CHANGED':
       return `${who} moved ${task} from ${statusLabel(d.from)} to ${statusLabel(d.to)}`;
     case 'TASK_ASSIGNED':
-      return isUser(d.assignee) ? `${who} assigned ${task} to ${d.assignee.name}` : `${who} unassigned ${task}`;
+      return isUser(d.assignee)
+        ? `${who} assigned ${task} to ${d.assignee.name}`
+        : `${who} unassigned ${task}`;
     case 'TASK_DELETED':
       return `${who} deleted ${task}`;
     case 'COMMENT_CREATED':
       return `${who} commented on ${task}`;
     case 'MEMBER_JOINED':
-      return `${userName(d.user)} joined the workspace as ${humanize(str(d.role))}`;
+      return `${userName(d.user)} joined as ${humanize(str(d.role))}`;
     case 'MEMBER_REMOVED':
-      return `${who} removed ${userName(d.user)} from the workspace`;
+      return `${who} removed ${userName(d.user)}`;
     case 'MEMBER_ROLE_CHANGED':
       return `${who} changed ${userName(d.user)}'s role from ${humanize(str(d.from))} to ${humanize(str(d.to))}`;
   }
@@ -69,18 +78,21 @@ export function ActivityItem({ activity }: { activity: Activity }) {
       : null;
 
   return (
-    <li className="flex items-start gap-3 py-3">
+    <li className="flex items-start gap-2.5 py-2">
       {activity.actor ? (
-        <UserAvatar user={activity.actor} className="mt-0.5 size-7" />
+        <UserAvatar user={activity.actor} className="mt-0.5 size-6" />
       ) : (
-        <span className="mt-0.5 block size-7 shrink-0 rounded-full bg-muted" aria-hidden />
+        <span className="mt-0.5 block size-6 shrink-0 rounded-full bg-muted" aria-hidden />
       )}
       <div className="min-w-0 flex-1">
-        <p className="text-sm text-pretty">
+        <p className="text-[13px] leading-snug text-pretty">
           {link && keyAt >= 0 ? (
             <>
               {text.slice(0, keyAt)}
-              <Link to={link} className="font-medium text-primary underline-offset-4 hover:underline">
+              <Link
+                to={link}
+                className="font-mono text-[12px] font-semibold tracking-tight text-primary underline-offset-4 hover:underline"
+              >
                 {key}
               </Link>
               {text.slice(keyAt + key.length)}
@@ -89,11 +101,19 @@ export function ActivityItem({ activity }: { activity: Activity }) {
             text
           )}
         </p>
-        <time dateTime={activity.createdAt} className="mt-0.5 block text-xs text-muted-foreground">
+        <time dateTime={activity.createdAt} className="mt-0.5 block text-[11px] text-muted-foreground">
           {timeAgo(activity.createdAt)}
         </time>
       </div>
-      {activity.viaAgent && <Badge variant="secondary">Agent</Badge>}
+      {activity.viaAgent && (
+        <Badge
+          variant="outline"
+          className="mt-0.5 border-transparent bg-muted/50 px-1.5 font-mono text-[10px] font-normal text-muted-foreground"
+          title="Action performed via an API token"
+        >
+          Via token
+        </Badge>
+      )}
     </li>
   );
 }

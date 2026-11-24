@@ -16,8 +16,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { UserAvatar } from '@/components/UserAvatar';
 import { api, errorMessage } from '@/lib/api';
 import { useUser } from '@/lib/auth';
@@ -25,7 +38,13 @@ import { formatDate } from '@/lib/format';
 import { qk } from '@/lib/queryKeys';
 import type { Member } from '@/lib/types';
 import { useWorkspace } from '@/lib/workspace';
-import { assignableRoles, canChangeRole, canRemoveMember, isWorkspaceRole, ROLE_LABEL } from './rules';
+import {
+  assignableRoles,
+  canChangeRole,
+  canRemoveMember,
+  isWorkspaceRole,
+  ROLE_LABEL,
+} from './rules';
 
 export function MembersTable({ members }: { members: Member[] }) {
   const { workspace, can } = useWorkspace();
@@ -69,14 +88,16 @@ export function MembersTable({ members }: { members: Member[] }) {
 
   return (
     <>
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto border-y">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Member</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead className="hidden sm:table-cell">Joined</TableHead>
-              <TableHead className="w-0">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="h-9 text-xs text-muted-foreground">Member</TableHead>
+              <TableHead className="h-9 text-xs text-muted-foreground">Role</TableHead>
+              <TableHead className="hidden h-9 text-xs text-muted-foreground sm:table-cell">
+                Joined
+              </TableHead>
+              <TableHead className="h-9 w-0">
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
@@ -94,7 +115,11 @@ export function MembersTable({ members }: { members: Member[] }) {
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">
                           {m.user.name}
-                          {isMe && <span className="ml-1.5 text-xs font-normal text-muted-foreground">(you)</span>}
+                          {isMe && (
+                            <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                              (you)
+                            </span>
+                          )}
                         </p>
                         <p className="truncate text-xs text-muted-foreground">{m.user.email}</p>
                       </div>
@@ -109,7 +134,11 @@ export function MembersTable({ members }: { members: Member[] }) {
                           if (isWorkspaceRole(role)) setRole.mutate({ userId: m.userId, role });
                         }}
                       >
-                        <SelectTrigger size="sm" className="w-32" aria-label={`Role of ${m.user.name}`}>
+                        <SelectTrigger
+                          size="sm"
+                          className="w-32"
+                          aria-label={`Role of ${m.user.name}`}
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -156,12 +185,14 @@ export function MembersTable({ members }: { members: Member[] }) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {removing?.userId === me.id ? `Leave ${workspace.name}?` : `Remove ${removing?.user.name}?`}
+              {removing?.userId === me.id
+                ? `Leave ${workspace.name}?`
+                : `Remove ${removing?.user.name}?`}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {removing?.userId === me.id
-                ? 'You will lose access to this workspace and its projects. Your tasks here will be unassigned.'
-                : 'They will lose access to this workspace. Their assigned tasks will be unassigned.'}
+                ? 'You will lose access to this workspace and its projects. Your assigned tasks will be unassigned.'
+                : `${removing?.user.name} will lose access. Their assigned tasks will be unassigned.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

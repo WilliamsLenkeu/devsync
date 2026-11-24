@@ -19,6 +19,10 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: 'ARCHIVED', label: 'Archived' },
 ];
 
+/**
+ * Design Read: project index for eng teammates, dial ENERGY 2 / RHYTHM 2 / MOTION 1.
+ * Job: pick a project to open. Flat rows, not a card mosaic.
+ */
 export function ProjectListPage() {
   const { workspace, can } = useWorkspace();
   const [filter, setFilter] = useState<Filter>('ALL');
@@ -36,33 +40,27 @@ export function ProjectListPage() {
           canCreate && (
             <Button onClick={openCreate}>
               <Plus aria-hidden />
-              New project
+              Create project
             </Button>
           )
         }
       />
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)}>
-        <TabsList>
+        <TabsList variant="line" aria-label="Filter projects by status">
           {FILTERS.map((f) => (
             <TabsTrigger key={f.value} value={f.value}>
               {f.label}
             </TabsTrigger>
           ))}
         </TabsList>
-        <TabsContent value={filter} className="pt-4">
-          {projects.isPending && (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {[0, 1, 2].map((i) => (
-                <Skeleton key={i} className="h-48 rounded-xl" />
-              ))}
-            </div>
-          )}
+        <TabsContent value={filter} className="pt-2">
+          {projects.isPending && <ProjectListSkeleton />}
           {projects.isError && (
             <ErrorState error={projects.error} onRetry={() => void projects.refetch()} />
           )}
           {projects.data && (
-            <ProjectsGrid
+            <ProjectsList
               projects={projects.data}
               workspaceId={workspace.id}
               filter={filter}
@@ -89,7 +87,7 @@ const EMPTY_TITLE: Record<Filter, string> = {
   ARCHIVED: 'No archived projects',
 };
 
-function ProjectsGrid({
+function ProjectsList({
   projects,
   workspaceId,
   filter,
@@ -107,7 +105,7 @@ function ProjectsGrid({
         title={EMPTY_TITLE[filter]}
         description={
           filter === 'ALL'
-            ? 'A project groups tasks on a Kanban board, with its own members and activity.'
+            ? 'A project groups tasks on a board, with its own members and activity.'
             : 'Switch to another filter to see the rest of your projects.'
         }
         action={
@@ -115,7 +113,7 @@ function ProjectsGrid({
           filter === 'ALL' && (
             <Button onClick={onCreate}>
               <Plus aria-hidden />
-              New project
+              Create project
             </Button>
           )
         }
@@ -124,12 +122,48 @@ function ProjectsGrid({
   }
 
   return (
-    <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {projects.map((p) => (
-        <li key={p.id}>
-          <ProjectCard project={p} workspaceId={workspaceId} />
-        </li>
+    <div>
+      <div className="hidden border-b border-border py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase sm:grid sm:grid-cols-[minmax(0,1fr)_11rem_7rem] sm:gap-6">
+        <span>Project</span>
+        <span>Progress</span>
+        <span className="text-right">Updated</span>
+      </div>
+      <ul>
+        {projects.map((p) => (
+          <li key={p.id}>
+            <ProjectCard project={p} workspaceId={workspaceId} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ProjectListSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Loading projects">
+      <div className="hidden border-b py-2 sm:grid sm:grid-cols-[minmax(0,1fr)_11rem_7rem] sm:gap-6">
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="ml-auto h-3 w-14" />
+      </div>
+      {[0, 1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className="grid grid-cols-1 gap-2.5 border-b border-border py-3 sm:grid-cols-[minmax(0,1fr)_11rem_7rem] sm:items-center sm:gap-6"
+        >
+          <div className="space-y-1.5">
+            <Skeleton className="h-3 w-10" />
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-3 w-56 max-w-full" />
+          </div>
+          <div className="space-y-1.5">
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-2.5 w-full" />
+          </div>
+          <Skeleton className="h-3 w-20 sm:ml-auto" />
+        </div>
       ))}
-    </ul>
+    </div>
   );
 }

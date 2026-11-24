@@ -67,52 +67,63 @@ export function ProjectMembers({
     });
 
   return (
-    <section aria-labelledby="members-heading" className="h-fit rounded-xl border bg-card p-5">
-      <h2 id="members-heading" className="text-sm font-semibold">
-        Members
-      </h2>
+    <section aria-labelledby="members-heading" className="h-fit">
+      <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2">
+        <h2 id="members-heading" className="text-sm font-semibold tracking-tight">
+          Members
+        </h2>
+        {members.data && (
+          <span className="text-xs tabular-nums text-muted-foreground">{members.data.length}</span>
+        )}
+      </div>
 
-      {canManage && (
-        <div className="mt-4 grid gap-2">
-          <Label htmlFor="add-member">Add a workspace member</Label>
-          <div className="flex gap-2">
-            <Select
-              value={selectedUserId}
-              onValueChange={setSelectedUserId}
-              disabled={addable.length === 0}
-            >
-              <SelectTrigger id="add-member" className="min-w-0 flex-1">
-                <SelectValue
-                  placeholder={
-                    addable.length === 0 ? 'Everyone is in this project' : 'Select a member'
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {addable.map((m) => (
-                  <SelectItem key={m.userId} value={m.userId}>
-                    {m.user.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              onClick={onAdd}
-              disabled={!selectedUserId || add.isPending}
-              aria-label="Add selected member"
-            >
-              <UserPlus aria-hidden />
-              Add
-            </Button>
+      <div className="pt-2.5">
+        {canManage && (
+          <div className="mb-4 grid gap-2">
+            <Label htmlFor="add-member">Add a workspace member</Label>
+            <div className="flex gap-2">
+              <Select
+                value={selectedUserId}
+                onValueChange={setSelectedUserId}
+                disabled={addable.length === 0}
+              >
+                <SelectTrigger id="add-member" className="min-w-0 flex-1">
+                  <SelectValue
+                    placeholder={
+                      addable.length === 0 ? 'Everyone is in this project' : 'Select a member'
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {addable.map((m) => (
+                    <SelectItem key={m.userId} value={m.userId}>
+                      {m.user.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                onClick={onAdd}
+                disabled={!selectedUserId || add.isPending}
+                aria-label="Add selected member"
+              >
+                <UserPlus aria-hidden />
+                Add
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="mt-4">
         {members.isPending && (
-          <div className="space-y-3">
+          <div className="divide-y" aria-busy="true">
             {[0, 1, 2].map((i) => (
-              <Skeleton key={i} className="h-8" />
+              <div key={i} className="flex items-center gap-3 py-2.5">
+                <Skeleton className="size-8 rounded-full" />
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <Skeleton className="h-3.5 w-28" />
+                  <Skeleton className="h-3 w-40" />
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -120,12 +131,12 @@ export function ProjectMembers({
           <ErrorState error={members.error} onRetry={() => void members.refetch()} />
         )}
         {members.data && members.data.length === 0 && (
-          <p className="py-4 text-center text-sm text-muted-foreground">No members yet.</p>
+          <p className="py-6 text-sm text-muted-foreground">No members yet.</p>
         )}
         {members.data && members.data.length > 0 && (
-          <ul className="space-y-1">
+          <ul className="divide-y">
             {members.data.map((m) => (
-              <li key={m.userId} className="flex items-center gap-3 rounded-md px-1 py-1.5">
+              <li key={m.userId} className="flex items-center gap-3 py-2.5">
                 <UserAvatar
                   user={{ name: m.user.name, avatarUrl: m.user.avatarUrl }}
                   className="size-8"

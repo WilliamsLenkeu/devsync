@@ -9,20 +9,26 @@ import { useNotificationActions } from './hooks';
 export function NotificationRow({ n, onOpened }: { n: AppNotification; onOpened?: () => void }) {
   const { open, markRead } = useNotificationActions();
   const unread = !n.readAt;
+
   return (
-    <li className="flex items-center gap-1 px-2">
+    <li
+      className={cn(
+        'group flex items-stretch gap-0.5',
+        unread && 'bg-accent/35',
+      )}
+    >
       <button
         type="button"
         onClick={() => {
           open(n);
           onOpened?.();
         }}
-        className="flex min-w-0 flex-1 items-start gap-3 rounded-md px-2 py-3 text-left outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        className="flex min-h-14 min-w-0 flex-1 items-start gap-3 px-3 py-3 text-left outline-none transition-colors hover:bg-accent/50 focus-visible:bg-accent/50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
       >
         <span
           aria-hidden
           className={cn(
-            'mt-1.5 size-2 shrink-0 rounded-full',
+            'mt-1.5 size-1.5 shrink-0 rounded-full',
             unread ? 'bg-primary' : 'bg-transparent',
           )}
         />
@@ -35,7 +41,7 @@ export function NotificationRow({ n, onOpened }: { n: AppNotification; onOpened?
           >
             <NotificationText n={n} />
           </span>
-          <span className="mt-0.5 block text-xs text-muted-foreground">
+          <span className="mt-0.5 block text-xs text-muted-foreground tabular-nums">
             {timeAgo(n.createdAt)}
             {unread && <span className="sr-only">, unread</span>}
           </span>
@@ -44,7 +50,8 @@ export function NotificationRow({ n, onOpened }: { n: AppNotification; onOpened?
       {unread && (
         <Button
           variant="ghost"
-          size="icon-sm"
+          size="icon"
+          className="my-auto mr-1 size-11 shrink-0 opacity-100 sm:size-8 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
           aria-label="Mark as read"
           title="Mark as read"
           disabled={markRead.isPending}

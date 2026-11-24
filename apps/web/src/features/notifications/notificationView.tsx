@@ -18,10 +18,10 @@ export function notificationPath(n: AppNotification): string {
   return `/w/${n.workspaceId}/projects/${projectId}/board?task=${taskId}`;
 }
 
-/** Human-readable sentence for a notification, e.g. "Ada assigned you WEB-12 — Fix login". */
+/** Human-readable sentence for a notification, e.g. "Ada assigned you WEB-12: Fix login". */
 export function NotificationText({ n }: { n: AppNotification }) {
   const d = n.data;
-  const task = [str(d, 'taskKey'), str(d, 'title')].filter(Boolean).join(' — ');
+  const task = [str(d, 'taskKey'), str(d, 'title')].filter(Boolean).join(': ');
   switch (n.type) {
     case 'TASK_ASSIGNED':
       return (

@@ -30,7 +30,12 @@ const schema = z.object({
 });
 type Values = z.infer<typeof schema>;
 
-const DEFAULT_SCOPES: ApiTokenScope[] = ['workspaces:read', 'projects:read', 'tasks:read', 'activity:read'];
+const DEFAULT_SCOPES: ApiTokenScope[] = [
+  'workspaces:read',
+  'projects:read',
+  'tasks:read',
+  'activity:read',
+];
 
 export function CreateTokenDialog({ workspaceId }: { workspaceId: string }) {
   const qc = useQueryClient();
@@ -43,11 +48,14 @@ export function CreateTokenDialog({ workspaceId }: { workspaceId: string }) {
   const create = useMutation({
     mutationFn: (values: Values) => {
       const days = values.expiresInDays.trim() === '' ? undefined : Number(values.expiresInDays);
-      return api.post<{ token: ApiToken; secret: string }>(`/workspaces/${workspaceId}/api-tokens`, {
-        name: values.name,
-        scopes: values.scopes,
-        ...(days !== undefined && Number.isFinite(days) ? { expiresInDays: days } : {}),
-      });
+      return api.post<{ token: ApiToken; secret: string }>(
+        `/workspaces/${workspaceId}/api-tokens`,
+        {
+          name: values.name,
+          scopes: values.scopes,
+          ...(days !== undefined && Number.isFinite(days) ? { expiresInDays: days } : {}),
+        },
+      );
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: qk.apiTokens(workspaceId) }),
     onError: (err) => form.setError('root', { message: errorMessage(err) }),
@@ -75,9 +83,10 @@ export function CreateTokenDialog({ workspaceId }: { workspaceId: string }) {
         {secret ? (
           <>
             <DialogHeader>
-              <DialogTitle>Token created</DialogTitle>
+              <DialogTitle>Copy your secret</DialogTitle>
               <DialogDescription>
-                Copy this secret now. It will not be shown again — only a SHA-256 hash is stored.
+                This is the only time the secret is shown. Store it somewhere safe. We keep only a
+                hash.
               </DialogDescription>
             </DialogHeader>
             <div className="flex items-center gap-2">
@@ -86,6 +95,7 @@ export function CreateTokenDialog({ workspaceId }: { workspaceId: string }) {
                 value={secret}
                 aria-label="API token secret"
                 className="font-mono text-xs"
+                autoFocus
                 onFocus={(e) => e.target.select()}
               />
               <CopyButton value={secret} />
@@ -103,7 +113,8 @@ export function CreateTokenDialog({ workspaceId }: { workspaceId: string }) {
             <DialogHeader>
               <DialogTitle>Create API token</DialogTitle>
               <DialogDescription>
-                Scoped for agents and the MCP server. Effective rights are scope AND your workspace role.
+                Pick a name and scopes. Effective rights are the intersection of scopes and your
+                workspace role.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-2">
@@ -137,11 +148,16 @@ export function CreateTokenDialog({ workspaceId }: { workspaceId: string }) {
                             checked={checked}
                             onCheckedChange={(v) =>
                               field.onChange(
-                                v === true ? [...field.value, scope] : field.value.filter((s) => s !== scope),
+                                v === true
+                                  ? [...field.value, scope]
+                                  : field.value.filter((s) => s !== scope),
                               )
                             }
                           />
-                          <Label htmlFor={`scope-${scope}`} className="font-mono text-xs font-normal">
+                          <Label
+                            htmlFor={`scope-${scope}`}
+                            className="font-mono text-xs font-normal"
+                          >
                             {scope}
                           </Label>
                         </li>

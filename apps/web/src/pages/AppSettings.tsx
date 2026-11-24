@@ -11,45 +11,66 @@ export function AppSettingsPage() {
   const user = useUser();
 
   return (
-    <div className="mx-auto grid max-w-2xl gap-10 p-6 lg:p-8">
+    <div className="mx-auto grid max-w-xl gap-6 p-4 sm:p-6 lg:p-8">
       <PageHeader title="App settings" description="Preferences are saved on this device." />
 
-      <fieldset className="grid gap-3">
-        <legend className="mb-3 text-sm font-medium">Theme</legend>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {THEME_OPTIONS.map((o) => (
-            <label
-              key={o.value}
-              className={cn(
-                'flex cursor-pointer items-center gap-3 rounded-lg border p-3 text-sm transition-colors hover:bg-accent/40 has-focus-visible:ring-[3px] has-focus-visible:ring-ring/50',
-                theme === o.value && 'border-primary bg-accent text-accent-foreground',
-              )}
-            >
-              <input
-                type="radio"
-                name="theme"
-                value={o.value}
-                checked={theme === o.value}
-                onChange={() => setTheme(o.value as Theme)}
-                className="sr-only"
-              />
-              <o.icon className="size-4" aria-hidden />
-              {o.label}
-            </label>
-          ))}
+      <section aria-labelledby="theme-title" className="grid gap-4 rounded-lg border border-border bg-card p-5 shadow-none">
+        <div>
+          <h2 id="theme-title" className="text-sm font-medium">
+            Theme
+          </h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            System follows your operating system light or dark setting.
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          System follows your operating system's light or dark setting.
-        </p>
-      </fieldset>
+        <fieldset>
+          <legend className="sr-only">Theme</legend>
+          <div
+            className="grid gap-2 sm:grid-cols-3"
+            role="radiogroup"
+            aria-labelledby="theme-title"
+          >
+            {THEME_OPTIONS.map((o) => {
+              const selected = theme === o.value;
+              return (
+                <label
+                  key={o.value}
+                  className={cn(
+                    'relative flex min-h-11 cursor-pointer items-center gap-2.5 rounded-md border px-3 py-2.5 text-sm transition-colors duration-150 hover:bg-accent/40 has-focus-visible:ring-2 has-focus-visible:ring-ring',
+                    selected
+                      ? 'border-primary/40 bg-accent pl-5 text-accent-foreground'
+                      : 'border-border bg-background',
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="theme"
+                    value={o.value}
+                    checked={selected}
+                    onChange={() => setTheme(o.value as Theme)}
+                    className="sr-only"
+                  />
+                  {selected && (
+                    <span
+                      aria-hidden
+                      className="absolute left-2 top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-primary"
+                    />
+                  )}
+                  <o.icon className="size-4 shrink-0 opacity-80" aria-hidden />
+                  {o.label}
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+      </section>
 
-      <section aria-labelledby="about-title" className="grid gap-2 border-t pt-8">
+      <section aria-labelledby="about-title" className="grid gap-2 border-t pt-6">
         <h2 id="about-title" className="text-sm font-medium">
           About
         </h2>
         <p className="text-sm text-muted-foreground text-pretty">
-          DevSync is collaboration software for dev teams: boards, activity and roles, plus an API
-          and an MCP server for AI coding agents.
+          DevSync is collaboration software for dev teams: boards, activity, and roles.
         </p>
         <p className="text-sm text-muted-foreground">Signed in as {user.email}</p>
       </section>

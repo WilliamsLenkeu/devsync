@@ -17,7 +17,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { api, errorMessage } from '@/lib/api';
 import { qk } from '@/lib/queryKeys';
 import type { Invitation } from '@/lib/types';
@@ -32,11 +38,17 @@ type Values = z.infer<typeof schema>;
 export function InviteDialog({ workspaceId }: { workspaceId: string }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { email: '', role: 'MEMBER' } });
+  const form = useForm<Values>({
+    resolver: zodResolver(schema),
+    defaultValues: { email: '', role: 'MEMBER' },
+  });
 
   const invite = useMutation({
     mutationFn: (values: Values) =>
-      api.post<{ invitation: Invitation; token: string }>(`/workspaces/${workspaceId}/invitations`, values),
+      api.post<{ invitation: Invitation; token: string }>(
+        `/workspaces/${workspaceId}/invitations`,
+        values,
+      ),
     onSuccess: () => void qc.invalidateQueries({ queryKey: qk.workspaceInvitations(workspaceId) }),
     onError: (err) => form.setError('root', { message: errorMessage(err) }),
   });
@@ -63,14 +75,26 @@ export function InviteDialog({ workspaceId }: { workspaceId: string }) {
         {link ? (
           <>
             <DialogHeader>
-              <DialogTitle>Invitation created</DialogTitle>
+              <DialogTitle>Share this link</DialogTitle>
               <DialogDescription>
-                No email was sent. Share this link with the person you invited. It is shown only once and expires in 7
-                days.
+                No email was sent. Copy the one-time link below and send it yourself. It expires in
+                7 days and will not be shown again.
               </DialogDescription>
             </DialogHeader>
+            <div
+              role="status"
+              className="border border-border bg-muted/25 px-3 py-2 text-sm text-foreground"
+            >
+              Anyone with this link can join as {ROLE_LABEL[invite.data.invitation.role]}.
+            </div>
             <div className="flex items-center gap-2">
-              <Input readOnly value={link} aria-label="Invitation link" className="font-mono text-xs" onFocus={(e) => e.target.select()} />
+              <Input
+                readOnly
+                value={link}
+                aria-label="Invitation link"
+                className="font-mono text-xs"
+                onFocus={(e) => e.target.select()}
+              />
               <CopyButton value={link} />
             </div>
             <DialogFooter>
@@ -81,10 +105,16 @@ export function InviteDialog({ workspaceId }: { workspaceId: string }) {
             </DialogFooter>
           </>
         ) : (
-          <form onSubmit={form.handleSubmit((values) => invite.mutate(values))} noValidate className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit((values) => invite.mutate(values))}
+            noValidate
+            className="space-y-4"
+          >
             <DialogHeader>
               <DialogTitle>Invite a member</DialogTitle>
-              <DialogDescription>They join with the role you pick. Owners cannot be invited.</DialogDescription>
+              <DialogDescription>
+                Enter their email and role. You get a one-time link to share. We do not send email.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-2">
               <Label htmlFor="invite-email">Email</Label>
@@ -105,7 +135,10 @@ export function InviteDialog({ workspaceId }: { workspaceId: string }) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="invite-role">Role</Label>
-              <Select value={form.watch('role')} onValueChange={(role) => isInvitable(role) && form.setValue('role', role)}>
+              <Select
+                value={form.watch('role')}
+                onValueChange={(role) => isInvitable(role) && form.setValue('role', role)}
+              >
                 <SelectTrigger id="invite-role" className="w-full">
                   <SelectValue />
                 </SelectTrigger>

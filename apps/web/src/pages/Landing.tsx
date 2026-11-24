@@ -1,89 +1,172 @@
-import {
-  Activity,
-  Bot,
-  KeyRound,
-  LayoutGrid,
-  Radio,
-  ShieldCheck,
-  type LucideIcon,
-} from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDocumentTitle } from '@/components/layout/useDocumentTitle';
 import { Logo } from '@/components/layout/Logo';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
+import { cn } from '@/lib/utils';
 
-const FEATURES: { icon: LucideIcon; title: string; body: string }[] = [
-  {
-    icon: LayoutGrid,
-    title: 'Kanban boards',
-    body: 'One board per project. Move tasks across columns, filter by assignee, priority or label.',
-  },
-  {
-    icon: Radio,
-    title: 'Real-time collaboration',
-    body: 'Changes reach everyone in the workspace as they happen, with presence and no page reloads.',
-  },
-  {
-    icon: Activity,
-    title: 'Activity feed',
-    body: 'Every change to projects, tasks, comments and members is recorded with its author, human or agent.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Roles and permissions',
-    body: 'Owner, admin, member and viewer. The server enforces them on every request, not just in the interface.',
-  },
-  {
-    icon: KeyRound,
-    title: 'API tokens and MCP',
-    body: 'Scoped, revocable tokens for agents. The MCP server lets AI coding tools read tasks and update them.',
-  },
-];
+gsap.registerPlugin(ScrollTrigger);
 
-const MCP_CONFIG = `{
-  "mcpServers": {
-    "devsync": {
-      "command": "pnpm",
-      "args": ["--filter", "@devsync/mcp-server", "start"],
-      "env": {
-        "DEVSYNC_API_URL": "https://your-devsync-host/api",
-        "DEVSYNC_API_TOKEN": "dsk_..."
-      }
-    }
-  }
-}`;
+/**
+ * Design Read: eng collab marketing, cinematic product reel, ENERGY 3 / RHYTHM 3 / MOTION 3.
+ * Sticky canvas + scrubbed chapters (Graphite/Vercel pattern). Real screenshots only.
+ */
+
+const CHAPTERS = [
+  {
+    id: 'dashboard',
+    label: '01 · Dashboard',
+    title: 'See what is on you, and what moved',
+    body: 'Assigned work, project progress, and the activity trail in one workspace home. Real numbers from your board, not marketing metrics.',
+    image: '/screenshots/02-dashboard.png',
+    alt: 'DevSync dashboard with assigned tasks, progress, and recent activity',
+  },
+  {
+    id: 'board',
+    label: '02 · Kanban',
+    title: 'Move work where the team can see it',
+    body: 'Columns for Todo, In progress, In review, and Done. Filters by assignee, priority, and label. Optimistic drag, task keys like WEB-12, comments with mentions.',
+    image: '/screenshots/03-board.png',
+    alt: 'DevSync Kanban board with task columns and cards',
+  },
+  {
+    id: 'live',
+    label: '03 · Live sync',
+    title: 'When someone moves a card, everyone sees it',
+    body: 'Realtime over WebSocket, presence on the board, notifications when you are mentioned or assigned. Roles enforced on every request.',
+    image: '/screenshots/02-dashboard.png',
+    alt: 'DevSync workspace overview showing live team context',
+  },
+] as const;
+
+const CAPABILITIES = [
+  ['Workspaces', 'Invite links, owners, admins, members, viewers'],
+  ['Projects', 'Active and archived, progress from real statuses'],
+  ['Kanban', 'Drag, filters, priorities, due dates, labels'],
+  ['Task sheet', 'Description, comments, activity, delete confirm'],
+  ['Activity', 'Who changed what, filter by project'],
+  ['Notifications', 'Unread queue and mark-read'],
+  ['Members', 'Roles and pending invitations'],
+  ['API tokens', 'Scoped secrets under Settings, optional agents'],
+] as const;
 
 export function LandingPage() {
-  useDocumentTitle('Collaboration for dev teams and AI agents');
+  useDocumentTitle('Collaboration for development teams');
   const { user } = useAuth();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const reelRef = useRef<HTMLElement>(null);
+  const [chapter, setChapter] = useState(0);
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    setReduced(Boolean(mql?.matches));
+    const onChange = () => setReduced(Boolean(mql?.matches));
+    mql?.addEventListener?.('change', onChange);
+    return () => mql?.removeEventListener?.('change', onChange);
+  }, []);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    const reel = reelRef.current;
+    if (!root || !reel || reduced) return;
+
+    const ctx = gsap.context(() => {
+      gsap.from('[data-hero]', {
+        opacity: 0,
+        y: 24,
+        duration: 0.75,
+        stagger: 0.07,
+        ease: 'power3.out',
+      });
+
+      const frames = gsap.utils.toArray<HTMLElement>('[data-frame]');
+      const copyBlocks = gsap.utils.toArray<HTMLElement>('[data-chapter-copy]');
+      gsap.set(frames, { autoAlpha: 0, scale: 1.02 });
+      gsap.set(frames[0], { autoAlpha: 1, scale: 1 });
+      gsap.set(copyBlocks, { autoAlpha: 0, y: 16 });
+      gsap.set(copyBlocks[0], { autoAlpha: 1, y: 0 });
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: reel,
+          start: 'top top',
+          end: () => `+=${window.innerHeight * CHAPTERS.length * 1.15}`,
+          pin: true,
+          scrub: 0.65,
+          anticipatePin: 1,
+          onUpdate: (self) => {
+            const idx = Math.min(CHAPTERS.length - 1, Math.floor(self.progress * CHAPTERS.length));
+            setChapter(idx);
+          },
+        },
+      });
+
+      CHAPTERS.forEach((_, i) => {
+        if (i === 0) return;
+        const t = i;
+        tl.to(frames[i - 1], { autoAlpha: 0, scale: 0.98, duration: 0.35 }, t);
+        tl.to(copyBlocks[i - 1], { autoAlpha: 0, y: -12, duration: 0.3 }, t);
+        tl.fromTo(
+          frames[i],
+          { autoAlpha: 0, scale: 1.03 },
+          { autoAlpha: 1, scale: 1, duration: 0.4 },
+          t + 0.05,
+        );
+        tl.fromTo(
+          copyBlocks[i],
+          { autoAlpha: 0, y: 18 },
+          { autoAlpha: 1, y: 0, duration: 0.35 },
+          t + 0.08,
+        );
+      });
+    }, root);
+
+    return () => ctx.revert();
+  }, [reduced]);
 
   return (
-    <div className="min-h-dvh bg-background text-foreground">
-      <header className="border-b">
+    <div ref={rootRef} className="min-h-dvh bg-[oklch(0.1_0.012_260)] text-[oklch(0.96_0.01_260)]">
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_-20%,oklch(0.45_0.1_55/0.22),transparent),url('data:image/svg+xml,%3Csvg viewBox=%270 0 256 256%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.8%27 numOctaves=%274%27 stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27 opacity=%270.04%27/%3E%3C/svg%3E')]"
+      />
+
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[oklch(0.1_0.012_260/0.85)] backdrop-blur-md">
         <nav
           aria-label="Main"
-          className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6"
+          className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6"
         >
           <Link
             to="/"
-            className="flex items-center gap-2 rounded-md text-sm font-semibold outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            className="flex min-h-11 items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
-            <Logo />
-            DevSync
+            <Logo className="size-7 text-[12px]" />
+            <span className="text-[15px] font-semibold tracking-[-0.02em]">DevSync</span>
           </Link>
+          <div className="hidden items-center gap-6 text-sm text-white/55 md:flex">
+            <a href="#reel" className="hover:text-white">
+              Product reel
+            </a>
+            <a href="#capabilities" className="hover:text-white">
+              Capabilities
+            </a>
+          </div>
           <div className="flex items-center gap-2">
             {user ? (
-              <Button asChild size="sm">
+              <Button asChild size="sm" className="min-h-11 px-4 sm:min-h-9">
                 <Link to="/app">Open app</Link>
               </Button>
             ) : (
               <>
-                <Button asChild variant="ghost" size="sm">
+                <Button asChild variant="ghost" size="sm" className="min-h-11 px-3 text-white/80 hover:bg-white/10 hover:text-white sm:min-h-9">
                   <Link to="/login">Sign in</Link>
                 </Button>
-                <Button asChild size="sm">
-                  <Link to="/register">Get started</Link>
+                <Button asChild size="sm" className="min-h-11 px-4 sm:min-h-9">
+                  <Link to="/register">Create account</Link>
                 </Button>
               </>
             )}
@@ -91,77 +174,189 @@ export function LandingPage() {
         </nav>
       </header>
 
-      <main>
-        <section className="mx-auto max-w-6xl px-6 pt-20 pb-24 md:pt-28">
-          <p className="font-mono text-xs tracking-widest text-cyan uppercase">
-            For dev teams and the agents they run
+      <main className="relative">
+        <section className="mx-auto max-w-6xl px-4 pb-16 pt-16 sm:px-6 sm:pb-24 sm:pt-24">
+          <p data-hero className="font-mono text-xs tracking-[0.18em] text-primary uppercase">
+            Team collaboration for builders
           </p>
-          <h1 className="mt-4 max-w-3xl text-5xl leading-[1.05] font-semibold tracking-[-0.04em] text-balance md:text-6xl">
-            Plan the work with your team and your AI agents.
+          <h1
+            data-hero
+            className="mt-5 max-w-[14ch] text-[clamp(2.75rem,8vw,5rem)] font-semibold leading-[0.92] tracking-[-0.035em] text-balance"
+          >
+            DevSync
           </h1>
-          <p className="mt-6 max-w-xl text-lg text-muted-foreground text-pretty">
-            DevSync is a task board, activity feed and real-time workspace for software teams. An
-            API and an MCP server let coding agents read tasks, update status and comment, within
-            the scopes and role you grant them.
+          <p
+            data-hero
+            className="mt-6 max-w-xl text-lg leading-relaxed text-white/65 text-pretty sm:text-xl"
+          >
+            Workspaces, Kanban, realtime, roles, activity, and notifications. Scroll the product reel
+            below. Every frame is a real screen from the app.
           </p>
-          <div className="mt-10 flex flex-wrap items-center gap-3">
-            <Button asChild size="lg">
-              <Link to={user ? '/app' : '/register'}>{user ? 'Open app' : 'Get started'}</Link>
-            </Button>
-            {!user && (
-              <Button asChild variant="outline" size="lg">
-                <Link to="/login">Sign in</Link>
+          <div data-hero className="mt-10 flex flex-wrap gap-3">
+            {user ? (
+              <Button asChild size="lg" className="min-h-11 px-6">
+                <Link to="/app">Open app</Link>
               </Button>
+            ) : (
+              <>
+                <Button asChild size="lg" className="min-h-11 px-6">
+                  <Link to="/register">Create account</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="min-h-11 border-white/20 bg-transparent px-6 text-white hover:bg-white/10 hover:text-white"
+                >
+                  <Link to="/login">Sign in</Link>
+                </Button>
+              </>
             )}
+            <Button asChild variant="ghost" size="lg" className="min-h-11 px-4 text-white/70 hover:bg-white/10 hover:text-white">
+              <a href="#reel">Watch the reel</a>
+            </Button>
           </div>
         </section>
 
-        <section aria-labelledby="features-title" className="border-t">
-          <div className="mx-auto max-w-6xl px-6 py-20">
-            <h2 id="features-title" className="text-2xl font-semibold tracking-tight">
-              What is included
-            </h2>
-            <ul className="mt-10 grid gap-x-12 gap-y-10 md:grid-cols-2">
-              {FEATURES.map((f) => (
-                <li key={f.title} className="flex gap-4">
-                  <f.icon className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
-                  <div>
-                    <h3 className="font-medium">{f.title}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground text-pretty">{f.body}</p>
+        <section
+          id="reel"
+          ref={reelRef}
+          aria-label="Product reel"
+          className="relative border-y border-white/10"
+        >
+          <div className="mx-auto flex min-h-dvh max-w-6xl flex-col justify-center gap-8 px-4 py-10 sm:px-6 lg:grid lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:gap-12">
+            <div className="relative z-10 max-w-md">
+              <p className="font-mono text-[11px] tracking-[0.2em] text-primary uppercase">Product reel</p>
+              <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Reel chapters">
+                {CHAPTERS.map((c, i) => (
+                  <span
+                    key={c.id}
+                    role="tab"
+                    aria-selected={chapter === i}
+                    className={cn(
+                      'rounded-full border px-3 py-1 font-mono text-[11px] transition-colors duration-200',
+                      chapter === i
+                        ? 'border-primary bg-primary/15 text-primary'
+                        : 'border-white/15 text-white/45',
+                    )}
+                  >
+                    {c.label}
+                  </span>
+                ))}
+              </div>
+              <div className="relative mt-8 min-h-[11rem]">
+                {CHAPTERS.map((c, i) => (
+                  <div
+                    key={c.id}
+                    data-chapter-copy
+                    className={cn('space-y-3', reduced ? (i === 0 ? 'block' : 'mt-10 block') : 'absolute inset-x-0 top-0')}
+                    style={reduced ? undefined : { visibility: i === 0 ? 'visible' : undefined }}
+                  >
+                    <h2 className="text-2xl font-semibold tracking-[-0.03em] text-balance sm:text-3xl">
+                      {c.title}
+                    </h2>
+                    <p className="text-sm leading-relaxed text-white/60 text-pretty sm:text-base">{c.body}</p>
                   </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+                ))}
+              </div>
+              <div className="mt-8 h-1 overflow-hidden rounded-full bg-white/10" aria-hidden>
+                <div
+                  className="h-full rounded-full bg-primary transition-[width] duration-200 ease-out"
+                  style={{ width: `${((chapter + 1) / CHAPTERS.length) * 100}%` }}
+                />
+              </div>
+            </div>
 
-        <section aria-labelledby="agents-title" className="border-t bg-secondary/40">
-          <div className="mx-auto grid max-w-6xl gap-10 px-6 py-20 md:grid-cols-[1fr_1.2fr]">
-            <div>
-              <Bot className="size-5 text-cyan" aria-hidden />
-              <h2
-                id="agents-title"
-                className="mt-4 text-2xl font-semibold tracking-tight text-balance"
-              >
-                Connect your AI agent
-              </h2>
-              <p className="mt-3 text-sm text-muted-foreground text-pretty">
-                Create an API token in your workspace with only the scopes the agent needs. The
-                token works in that workspace alone, and you can revoke it at any time. Add the MCP
-                server to your client with this configuration.
+            <div className="relative">
+              <div className="overflow-hidden rounded-xl border border-white/12 bg-[oklch(0.14_0.014_260)] shadow-[0_40px_80px_-20px_oklch(0_0_0/0.65)]">
+                <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2">
+                  <span className="size-2 rounded-full bg-white/20" />
+                  <span className="size-2 rounded-full bg-white/20" />
+                  <span className="size-2 rounded-full bg-white/20" />
+                  <span className="ml-2 font-mono text-[10px] text-white/35">app.devsync · live UI</span>
+                </div>
+                <div className={cn('relative aspect-[16/10] bg-black/40', reduced && 'space-y-0')}>
+                  {CHAPTERS.map((c, i) => (
+                    <img
+                      key={c.id}
+                      data-frame
+                      src={c.image}
+                      alt={c.alt}
+                      width={1280}
+                      height={800}
+                      className={cn(
+                        'h-full w-full object-cover object-top',
+                        reduced ? 'relative block border-b border-white/10 last:border-0' : 'absolute inset-0',
+                      )}
+                      style={reduced ? undefined : { opacity: i === 0 ? 1 : 0 }}
+                    />
+                  ))}
+                </div>
+              </div>
+              <p className="mt-3 text-center font-mono text-[11px] text-white/35">
+                Scroll to advance · real screenshots from DevSync
               </p>
             </div>
-            <pre className="overflow-x-auto rounded-lg border bg-card p-4 font-mono text-[13px] leading-6">
-              <code>{MCP_CONFIG}</code>
-            </pre>
+          </div>
+        </section>
+
+        <section id="capabilities" className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+          <h2 className="text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">What ships today</h2>
+          <p className="mt-2 max-w-2xl text-white/55 text-pretty">
+            Full surface area of the product. No invented modules.
+          </p>
+          <ul className="mt-10 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
+            {CAPABILITIES.map(([title, desc]) => (
+              <li key={title} className="bg-[oklch(0.12_0.012_260)] p-5">
+                <p className="font-medium tracking-[-0.01em]">{title}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-white/50">{desc}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="border-t border-white/10 bg-[oklch(0.14_0.014_260)]">
+          <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-16 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-[-0.02em]">Put the team on one board</h2>
+              <p className="mt-2 max-w-md text-white/55">
+                Create an account, open a workspace, invite people, ship from the Kanban.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Button asChild size="lg" className="min-h-11 px-6">
+                <Link to={user ? '/app' : '/register'}>{user ? 'Open app' : 'Create account'}</Link>
+              </Button>
+              {!user && (
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="min-h-11 border-white/20 bg-transparent px-6 text-white hover:bg-white/10 hover:text-white"
+                >
+                  <Link to="/login">Sign in</Link>
+                </Button>
+              )}
+            </div>
           </div>
         </section>
       </main>
 
-      <footer className="border-t">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-6 py-6 text-sm text-muted-foreground">
-          <span>DevSync</span>
-          <span>Licensed under the terms of the LICENSE file in the repository.</span>
+      <footer className="border-t border-white/10 py-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 text-sm text-white/45 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="flex items-center gap-2 text-white">
+            <Logo className="size-5 text-[10px]" />
+            <span className="font-medium">DevSync</span>
+          </div>
+          <p>Collaboration for development teams.</p>
+          <div className="flex gap-4">
+            <Link to="/login" className="hover:text-white">
+              Sign in
+            </Link>
+            <Link to="/register" className="hover:text-white">
+              Create account
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

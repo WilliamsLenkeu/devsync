@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useUser } from '@/lib/auth';
 import { timeAgo } from '@/lib/format';
 import type { Comment, Member } from '@/lib/types';
+import { cn } from '@/lib/utils';
 import { useWorkspace } from '@/lib/workspace';
 import { insertMention, mentionQuery, parseMentions } from './mentions';
 import { useCreateComment, useDeleteComment, type TaskScope } from './taskMutations';
@@ -34,8 +35,8 @@ export function TaskComments({
   if (comments.isPending) {
     return (
       <div className="space-y-3" aria-busy="true" aria-label="Loading comments">
-        <Skeleton className="h-16 w-full" />
-        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
       </div>
     );
   }
@@ -55,9 +56,12 @@ export function TaskComments({
           description={canWrite ? 'Mention teammates with @name.' : 'Nothing here yet.'}
         />
       ) : (
-        <ul className="space-y-4">
+        <ul className="space-y-1">
           {list.map((comment) => (
-            <li key={comment.id} className="flex gap-3">
+            <li
+              key={comment.id}
+              className="group flex gap-3 rounded-md px-2 py-2.5 hover:bg-muted/40 motion-safe:transition-colors motion-safe:duration-150"
+            >
               <UserAvatar user={comment.author} className="mt-0.5 size-7" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
@@ -70,7 +74,7 @@ export function TaskComments({
                       type="button"
                       variant="ghost"
                       size="icon-sm"
-                      className="ml-auto text-muted-foreground"
+                      className="ml-auto text-muted-foreground opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 motion-safe:transition-opacity motion-reduce:opacity-100"
                       aria-label="Delete comment"
                       onClick={() => remove.mutate({ commentId: comment.id, taskId })}
                     >
@@ -101,7 +105,7 @@ function CommentBody({ body }: { body: string }) {
     <p className="mt-1 text-sm text-pretty whitespace-pre-wrap">
       {parseMentions(body).map((seg, i) =>
         seg.kind === 'mention' ? (
-          <span key={i} className="rounded bg-primary/10 px-0.5 font-medium text-primary">
+          <span key={i} className="rounded-sm bg-primary/10 px-1 py-0.5 font-medium text-primary">
             @{seg.name}
           </span>
         ) : (
@@ -122,6 +126,7 @@ function CommentComposer({
   onSubmit: (body: string, done: () => void) => void;
 }) {
   const [body, setBody] = useState('');
+  const [activeIdx, setActiveIdx] = useState(0);
   const query = mentionQuery(body);
   const suggestions = useMemo(() => {
     if (query === null) return [];
@@ -135,20 +140,51 @@ function CommentComposer({
     onSubmit(next, () => setBody(''));
   };
 
+  const pick = (member: Member) => {
+    setBody(insertMention(body, member.user));
+    setActiveIdx(0);
+  };
+
   return (
-    <div className="relative grid gap-2">
+    <div className="relative grid gap-2 rounded-md border border-border bg-card p-3">
       <Textarea
         aria-label="New comment"
         placeholder="Write a comment… Use @ to mention"
         rows={3}
         value={body}
-        onChange={(e) => setBody(e.target.value)}
+        onChange={(e) => {
+          setBody(e.target.value);
+          setActiveIdx(0);
+        }}
         onKeyDown={(e) => {
+          if (suggestions.length > 0) {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              setActiveIdx((i) => (i + 1) % suggestions.length);
+              return;
+            }
+            if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              setActiveIdx((i) => (i - 1 + suggestions.length) % suggestions.length);
+              return;
+            }
+            if (e.key === 'Enter' && !e.metaKey && !e.ctrlKey) {
+              e.preventDefault();
+              pick(suggestions[activeIdx]!);
+              return;
+            }
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              setBody((b) => b.replace(/@[\w.-]*$/, ''));
+              return;
+            }
+          }
           if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
             e.preventDefault();
             submit();
           }
         }}
+        className="min-h-20 resize-y border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
       />
       {suggestions.length > 0 && (
         <ul
@@ -156,22 +192,27 @@ function CommentComposer({
           aria-label="Mention suggestions"
           className="absolute bottom-full left-0 z-10 mb-1 max-h-48 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md"
         >
-          {suggestions.map((m) => (
+          {suggestions.map((m, i) => (
             <li key={m.userId}>
               <button
                 type="button"
                 role="option"
-                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
-                onClick={() => setBody(insertMention(body, m.user))}
+                aria-selected={i === activeIdx}
+                className={cn(
+                  'flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm focus-visible:outline-none',
+                  i === activeIdx ? 'bg-accent' : 'hover:bg-accent/70',
+                )}
+                onMouseEnter={() => setActiveIdx(i)}
+                onClick={() => pick(m)}
               >
                 <UserAvatar user={m.user} className="size-5" />
-                {m.user.name}
+                <span className="truncate">{m.user.name}</span>
               </button>
             </li>
           ))}
         </ul>
       )}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 border-t pt-2">
         <p className="text-xs text-muted-foreground">Ctrl/⌘+Enter to send</p>
         <Button type="button" size="sm" disabled={!body.trim() || pending} onClick={submit}>
           {pending ? 'Posting…' : 'Comment'}

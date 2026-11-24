@@ -33,7 +33,7 @@ export function TaskActivity({ taskId }: { taskId: string }) {
 
   return (
     <div>
-      <ul className="divide-y">
+      <ul className="divide-y rounded-md border border-border">
         {items.map((item) => (
           <ActivityItem key={item.id} activity={item} />
         ))}

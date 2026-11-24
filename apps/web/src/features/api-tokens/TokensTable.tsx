@@ -14,7 +14,14 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { api, errorMessage } from '@/lib/api';
 import { formatDate, timeAgo } from '@/lib/format';
 import { qk } from '@/lib/queryKeys';
@@ -37,15 +44,21 @@ export function TokensTable({ workspaceId, tokens }: { workspaceId: string; toke
 
   return (
     <>
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto border-y">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead className="hidden md:table-cell">Scopes</TableHead>
-              <TableHead className="hidden sm:table-cell">Created</TableHead>
-              <TableHead className="hidden lg:table-cell">Last used</TableHead>
-              <TableHead className="w-0">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="h-9 text-xs text-muted-foreground">Name</TableHead>
+              <TableHead className="hidden h-9 text-xs text-muted-foreground md:table-cell">
+                Scopes
+              </TableHead>
+              <TableHead className="hidden h-9 text-xs text-muted-foreground sm:table-cell">
+                Created
+              </TableHead>
+              <TableHead className="hidden h-9 text-xs text-muted-foreground lg:table-cell">
+                Last used
+              </TableHead>
+              <TableHead className="h-9 w-0">
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
@@ -56,7 +69,8 @@ export function TokensTable({ workspaceId, tokens }: { workspaceId: string; toke
                 <TableCell>
                   <p className="text-sm font-medium">{t.name}</p>
                   <p className="font-mono text-xs text-muted-foreground">
-                    {t.prefix}…{t.expiresAt ? ` · expires ${formatDate(t.expiresAt)}` : ' · never expires'}
+                    {t.prefix}…
+                    {t.expiresAt ? ` · expires ${formatDate(t.expiresAt)}` : ' · never expires'}
                   </p>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
@@ -97,13 +111,16 @@ export function TokensTable({ workspaceId, tokens }: { workspaceId: string; toke
           <AlertDialogHeader>
             <AlertDialogTitle>Revoke {revoking?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
-              Agents using this token will lose access immediately. You cannot undo this.
+              Anything using this token loses access immediately. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => revoking && revoke.mutate(revoking.id)}>
-              Revoke
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => revoking && revoke.mutate(revoking.id)}
+            >
+              Revoke token
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

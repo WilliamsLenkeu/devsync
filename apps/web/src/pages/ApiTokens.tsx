@@ -12,6 +12,11 @@ import { qk } from '@/lib/queryKeys';
 import type { ApiToken } from '@/lib/types';
 import { useWorkspace } from '@/lib/workspace';
 
+/**
+ * Design Read: API secrets admin, signal-console,
+ * dial ENERGY 2 / RHYTHM 2 / MOTION 1.
+ * Job: create and revoke tokens. MCP stays collapsed secondary.
+ */
 export function ApiTokensPage() {
   useDocumentTitle('API tokens');
   const { workspace, can } = useWorkspace();
@@ -28,26 +33,44 @@ export function ApiTokensPage() {
   const active = tokens.data?.filter((t) => !t.revokedAt) ?? [];
 
   return (
-    <div className="mx-auto max-w-4xl space-y-10 p-6">
+    <div className="mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
       <PageHeader
         title="API tokens"
-        description="Scoped secrets for agents and the MCP server. Shown only once at creation."
+        description="Scoped secrets for scripts and integrations. The secret is shown only once."
         actions={<CreateTokenDialog workspaceId={wid} />}
       />
 
-      {tokens.isPending && <Skeleton className="h-40 w-full" />}
-      {tokens.isError && <ErrorState error={tokens.error} onRetry={() => void tokens.refetch()} />}
-      {tokens.isSuccess && active.length === 0 && (
-        <EmptyState
-          icon={KeyRound}
-          title="No active tokens"
-          description="Create a token, then paste it into your MCP client config."
-          action={<CreateTokenDialog workspaceId={wid} />}
-        />
-      )}
-      {tokens.isSuccess && active.length > 0 && <TokensTable workspaceId={wid} tokens={tokens.data} />}
+      <div className="grid gap-10">
+        {tokens.isPending && (
+          <div className="divide-y border-y" aria-busy="true" aria-label="Loading tokens">
+            {Array.from({ length: 3 }, (_, i) => (
+              <div key={i} className="space-y-2 py-2.5">
+                <Skeleton className="h-3.5 w-36" />
+                <Skeleton className="h-3 w-48" />
+              </div>
+            ))}
+          </div>
+        )}
 
-      <McpConfigCard />
+        {tokens.isError && (
+          <ErrorState error={tokens.error} onRetry={() => void tokens.refetch()} />
+        )}
+
+        {tokens.isSuccess && active.length === 0 && (
+          <EmptyState
+            icon={KeyRound}
+            title="No active tokens"
+            description="Create a token to call the API from scripts or CI."
+            action={<CreateTokenDialog workspaceId={wid} />}
+          />
+        )}
+
+        {tokens.isSuccess && active.length > 0 && (
+          <TokensTable workspaceId={wid} tokens={tokens.data} />
+        )}
+
+        <McpConfigCard />
+      </div>
     </div>
   );
 }

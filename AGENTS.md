@@ -30,3 +30,19 @@ Plateforme de collaboration pour équipes de dev (Kanban, temps réel, API + MCP
 - Authz backend via `authorize()` / `can()` — jamais « cacher le bouton » seulement.
 - Formes API : `docs/api-contract.md`. Décisions : `docs/decisions.md`.
 - Démo seed : `ada@devsync.dev` / `lin@devsync.dev` (mdp `DEMO_PASSWORD` ou `devsync-demo-123`).
+
+<!-- antislop:start -->
+## antislop
+
+Direction : `DESIGN.md` à la racine (source d’identité). Filtre anti-slop pour toute UI / copy / a11y / mobile / commentaires.
+
+Skills (machine locale) :
+- Core : `~/.claude/skills/antislop/SKILL.md`
+- UI : `~/.claude/skills/antislop-ui/SKILL.md`
+- Copy : `~/.claude/skills/antislop-copywriting/SKILL.md`
+- People : `~/.claude/skills/antislop-human/SKILL.md`
+- Mobile : `~/.claude/skills/antislop-layoutmobile/SKILL.md`
+- Comments : `~/.claude/skills/antislop-code/SKILL.md`
+
+Mode projet : **pendant** le travail (appliquer en écrivant). Ne pas livrer une UI “draft without direction”.
+<!-- antislop:end -->

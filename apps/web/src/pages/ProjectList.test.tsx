@@ -55,7 +55,7 @@ beforeEach(() => {
 });
 
 describe('ProjectListPage', () => {
-  it('lists projects and hides "New project" from viewers', async () => {
+  it('lists projects and hides "Create project" from viewers', async () => {
     mocks.role = 'VIEWER';
     mocks.get.mockResolvedValue([project]);
 
@@ -63,7 +63,7 @@ describe('ProjectListPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Web app' })).toBeInTheDocument();
     expect(mocks.get).toHaveBeenCalledWith('/workspaces/ws-1/projects', expect.anything());
-    expect(screen.queryByRole('button', { name: /new project/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /create project/i })).not.toBeInTheDocument();
   });
 
   it('suggests the identifier from the name and creates the project', async () => {
@@ -73,7 +73,7 @@ describe('ProjectListPage', () => {
 
     renderPage(<ProjectListPage />);
     await user.click(
-      (await screen.findAllByRole('button', { name: /new project/i }))[0] as HTMLElement,
+      (await screen.findAllByRole('button', { name: /create project/i }))[0] as HTMLElement,
     );
     const dialog = screen.getByRole('dialog');
     await user.type(within(dialog).getByLabelText('Name'), 'Dev Sync Web');
@@ -95,6 +95,6 @@ describe('ProjectListPage', () => {
     renderPage(<ProjectListPage />);
 
     expect(await screen.findByRole('heading', { name: 'No projects yet' })).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /new project/i })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: /create project/i })).toHaveLength(2);
   });
 });

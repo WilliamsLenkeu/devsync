@@ -19,7 +19,9 @@ export function UserAvatar({
   return (
     <Avatar className={cn('size-6 text-[10px]', className)} title={user.name}>
       {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt="" />}
-      <AvatarFallback className="bg-accent font-medium text-accent-foreground">{initials(user.name)}</AvatarFallback>
+      <AvatarFallback className="bg-accent font-medium text-accent-foreground">
+        {initials(user.name)}
+      </AvatarFallback>
     </Avatar>
   );
 }

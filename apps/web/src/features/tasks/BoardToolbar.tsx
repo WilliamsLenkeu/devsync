@@ -12,13 +12,13 @@ import {
 } from '@/components/ui/select';
 import { humanize } from '@/lib/format';
 import type { ProjectMember } from '@/lib/types';
-import { isManualOrder, type BoardFilters, type SortKey } from './boardLogic';
+import { hasActiveFilters, isManualOrder, type BoardFilters, type SortKey } from './boardLogic';
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-  { value: 'position', label: 'Manual order' },
+  { value: 'position', label: 'Manual' },
   { value: 'createdAt', label: 'Created' },
   { value: 'updatedAt', label: 'Updated' },
-  { value: 'dueDate', label: 'Due date' },
+  { value: 'dueDate', label: 'Due' },
   { value: 'priority', label: 'Priority' },
 ];
 
@@ -31,12 +31,14 @@ function DebouncedInput({
   placeholder,
   onCommit,
   type = 'search',
+  className,
 }: {
   label: string;
   value: string;
   placeholder: string;
   onCommit: (value: string) => void;
   type?: 'search' | 'text';
+  className?: string;
 }) {
   const [draft, setDraft] = useState(value);
 
@@ -48,9 +50,9 @@ function DebouncedInput({
   }, [draft]);
 
   return (
-    <div className="relative">
+    <div className="relative min-w-0">
       <Search
-        className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+        className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground"
         aria-hidden
       />
       <Input
@@ -59,7 +61,7 @@ function DebouncedInput({
         placeholder={placeholder}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
-        className="h-8 w-56 pl-8"
+        className={className ?? 'h-9 w-full max-w-48 pl-8'}
       />
     </div>
   );
@@ -76,13 +78,17 @@ export function BoardToolbar({
   onChange: (patch: Partial<BoardFilters>) => void;
   onClear: () => void;
 }) {
+  const dirty = !isManualOrder(filters);
+  const filtered = hasActiveFilters(filters);
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <DebouncedInput
         label="Search tasks"
-        placeholder="Search tasks…"
+        placeholder="Search…"
         value={filters.q}
         onCommit={(q) => onChange({ q })}
+        className="h-9 w-full max-w-[12rem] pl-8 sm:max-w-[14rem]"
       />
       <Select
         value={filters.priority || ALL}
@@ -90,11 +96,11 @@ export function BoardToolbar({
           onChange({ priority: v === ALL ? '' : (v as BoardFilters['priority']) })
         }
       >
-        <SelectTrigger size="sm" aria-label="Filter by priority" className="w-36">
-          <SelectValue />
+        <SelectTrigger size="sm" aria-label="Filter by priority" className="h-9 w-[7.5rem]">
+          <SelectValue placeholder="Priority" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={ALL}>All priorities</SelectItem>
+          <SelectItem value={ALL}>Priority</SelectItem>
           {TASK_PRIORITIES.map((p) => (
             <SelectItem key={p} value={p}>
               {humanize(p)}
@@ -106,11 +112,11 @@ export function BoardToolbar({
         value={filters.assignee || ALL}
         onValueChange={(v) => onChange({ assignee: v === ALL ? '' : v })}
       >
-        <SelectTrigger size="sm" aria-label="Filter by assignee" className="w-44">
-          <SelectValue />
+        <SelectTrigger size="sm" aria-label="Filter by assignee" className="h-9 w-36">
+          <SelectValue placeholder="Assignee" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={ALL}>Anyone</SelectItem>
+          <SelectItem value={ALL}>Assignee</SelectItem>
           <SelectItem value="me">Me</SelectItem>
           <SelectItem value="none">Unassigned</SelectItem>
           {members.map((m) => (
@@ -123,12 +129,14 @@ export function BoardToolbar({
       <DebouncedInput
         type="text"
         label="Filter by label"
-        placeholder="Label name"
+        placeholder="Label"
         value={filters.label}
         onCommit={(label) => onChange({ label })}
+        className="h-9 w-28 pl-8"
       />
+      <div className="mx-0.5 hidden h-5 w-px bg-border sm:block" aria-hidden />
       <Select value={filters.sort} onValueChange={(v) => onChange({ sort: v as SortKey })}>
-        <SelectTrigger size="sm" aria-label="Sort by" className="w-40">
+        <SelectTrigger size="sm" aria-label="Sort by" className="h-9 w-[7.25rem]">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -141,16 +149,17 @@ export function BoardToolbar({
       </Select>
       <Button
         variant="outline"
-        size="icon-sm"
+        size="icon"
+        className="size-9"
         aria-label={`Sort ${filters.order === 'asc' ? 'ascending, switch to descending' : 'descending, switch to ascending'}`}
         onClick={() => onChange({ order: filters.order === 'asc' ? 'desc' : 'asc' })}
       >
         <ArrowDownUp aria-hidden />
       </Button>
-      {!isManualOrder(filters) && (
-        <Button variant="ghost" size="sm" onClick={onClear}>
+      {dirty && (
+        <Button variant="ghost" size="sm" className="h-9 text-muted-foreground" onClick={onClear}>
           <X aria-hidden />
-          Clear filters
+          {filtered ? 'Clear' : 'Reset'}
         </Button>
       )}
     </div>

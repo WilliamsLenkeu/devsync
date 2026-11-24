@@ -35,6 +35,7 @@ import { ApiError } from '@/lib/api';
 import { useUser } from '@/lib/auth';
 import { formatDate, humanize, timeAgo } from '@/lib/format';
 import type { Task } from '@/lib/types';
+import { cn } from '@/lib/utils';
 import { useWorkspace } from '@/lib/workspace';
 import { dateInputToIso, isoToDateInput } from './boardLogic';
 import { LabelsEditor } from './LabelsEditor';
@@ -49,10 +50,20 @@ export function TaskDetails({ taskId, onClose }: { taskId: string; onClose: () =
   const task = useTask(taskId);
 
   if (task.data) return <TaskBody key={task.data.id} task={task.data} onClose={onClose} />;
+
   if (task.isError) {
     return task.error instanceof ApiError && task.error.status === 404 ? (
-      <div className="p-6">
-        <EmptyState icon={SearchX} title="Task not found" description="It may have been deleted." />
+      <div className="grid min-h-56 place-items-center p-6">
+        <EmptyState
+          icon={SearchX}
+          title="Task not found"
+          description="It may have been deleted, or you no longer have access."
+          action={
+            <Button type="button" variant="outline" size="sm" onClick={onClose}>
+              Close
+            </Button>
+          }
+        />
       </div>
     ) : (
       <div className="p-6">
@@ -60,11 +71,19 @@ export function TaskDetails({ taskId, onClose }: { taskId: string; onClose: () =
       </div>
     );
   }
+
   return (
-    <div className="space-y-4 p-6" aria-busy="true" aria-label="Loading task">
-      <Skeleton className="h-4 w-20" />
-      <Skeleton className="h-7 w-3/4" />
-      <Skeleton className="h-40 w-full" />
+    <div className="space-y-5 p-5 sm:p-6" aria-busy="true" aria-label="Loading task">
+      <Skeleton className="h-3 w-20" />
+      <Skeleton className="h-8 w-4/5" />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-9 w-full" />
+      </div>
+      <Skeleton className="h-28 w-full" />
+      <p className="text-sm text-muted-foreground">Loading task…</p>
     </div>
   );
 }
@@ -90,12 +109,12 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
 
   return (
     <>
-      <header className="space-y-2 border-b p-5 pr-12">
-        <p className="font-mono text-xs text-muted-foreground">{task.key}</p>
+      <header className="sticky top-0 z-10 space-y-1.5 border-b border-border bg-background p-5 pr-14">
+        <p className="font-mono text-xs font-medium tracking-tight text-primary">{task.key}</p>
         <TitleField value={task.title} readOnly={readOnly} onSave={(title) => save({ title })} />
       </header>
 
-      <div className="space-y-6 p-5">
+      <div className="space-y-6 p-5 pb-8">
         <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Status">
             <Select
@@ -156,11 +175,11 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
             </Select>
           </Field>
           <Field label="Due date">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <Input
                 type="date"
                 aria-label="Due date"
-                className="h-9"
+                className="h-9 min-w-0 flex-1"
                 readOnly={readOnly}
                 value={task.dueDate ? isoToDateInput(task.dueDate) : ''}
                 onChange={(e) =>
@@ -192,11 +211,11 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
           />
         </Field>
 
-        <dl className="grid grid-cols-2 gap-4 text-sm">
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 border border-border bg-muted/25 px-3 py-3 text-sm">
           <Field label="Reporter">
             <span className="flex items-center gap-2">
-              <UserAvatar user={task.reporter} />
-              {task.reporter.name}
+              <UserAvatar user={task.reporter} className="size-6" />
+              <span className="truncate">{task.reporter.name}</span>
             </span>
           </Field>
           <Field label="Created">
@@ -208,11 +227,11 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
         </dl>
 
         {canDelete && (
-          <div>
+          <div className="border-t border-border pt-4">
             <Button
               variant="outline"
               size="sm"
-              className="text-destructive"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
               onClick={() => setConfirmDelete(true)}
             >
               <Trash2 aria-hidden />
@@ -221,8 +240,8 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
           </div>
         )}
 
-        <Tabs defaultValue="comments">
-          <TabsList>
+        <Tabs defaultValue="comments" className="gap-0">
+          <TabsList className="w-full justify-start">
             <TabsTrigger value="comments">Comments ({task.commentCount})</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
           </TabsList>
@@ -240,7 +259,7 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {task.key}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes the task, its comments and its history for everyone.
+              This permanently removes the task, its comments and its history for everyone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -291,7 +310,12 @@ function TitleField({
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-      className="-mx-1 w-full rounded-md bg-transparent px-1 text-lg font-semibold tracking-tight outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring read-only:hover:bg-transparent"
+      className={cn(
+        '-mx-1 w-full rounded-md bg-transparent px-1 text-lg font-semibold tracking-tight text-balance outline-none',
+        'motion-safe:transition-colors motion-safe:duration-150',
+        'hover:bg-muted/50 focus-visible:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring',
+        'read-only:hover:bg-transparent read-only:focus-visible:bg-transparent',
+      )}
     />
   );
 }
@@ -319,7 +343,7 @@ function DescriptionField({
       readOnly={readOnly}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
-      className="resize-y"
+      className="min-h-24 resize-y text-sm"
     />
   );
 }

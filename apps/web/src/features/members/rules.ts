@@ -13,7 +13,8 @@ export const ROLE_LABEL: Record<WorkspaceRole, string> = {
   VIEWER: 'Viewer',
 };
 
-export const isWorkspaceRole = (v: string): v is WorkspaceRole => (WORKSPACE_ROLES as readonly string[]).includes(v);
+export const isWorkspaceRole = (v: string): v is WorkspaceRole =>
+  (WORKSPACE_ROLES as readonly string[]).includes(v);
 
 const ownerCount = (members: Member[]) => members.filter((m) => m.role === 'OWNER').length;
 
@@ -23,7 +24,8 @@ export const assignableRoles = (actor: WorkspaceRole): WorkspaceRole[] =>
 
 /** Mirrors the API rules (PATCH members): owners are only changed by an OWNER, and the last OWNER is locked. */
 export const canChangeRole = (actor: WorkspaceRole, target: Member, members: Member[]): boolean =>
-  can(actor, 'member:set-role') && (target.role !== 'OWNER' || (actor === 'OWNER' && ownerCount(members) > 1));
+  can(actor, 'member:set-role') &&
+  (target.role !== 'OWNER' || (actor === 'OWNER' && ownerCount(members) > 1));
 
 /** Removing someone else needs ADMIN+ (removing an OWNER needs OWNER); leaving yourself is always allowed unless you are the last OWNER. */
 export const canRemoveMember = (

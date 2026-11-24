@@ -27,7 +27,7 @@ export function LabelsEditor({
 }) {
   const form = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { name: '', color: '#6366f1' },
+    defaultValues: { name: '', color: '#0f766e' },
   });
 
   const add = form.handleSubmit(({ name, color }) => {
@@ -40,21 +40,26 @@ export function LabelsEditor({
   });
 
   return (
-    <div className="grid gap-2">
+    <div className="grid gap-2.5">
       <ul className="flex flex-wrap gap-1.5">
-        {labels.length === 0 && <li className="text-sm text-muted-foreground">No labels</li>}
+        {labels.length === 0 && <li className="text-sm text-muted-foreground">No labels yet</li>}
         {labels.map((label) => (
           <li
             key={label.id}
-            className="flex items-center gap-1 rounded py-0.5 pr-1 pl-2 text-xs font-medium"
+            className="group/label flex items-center gap-1 rounded-md py-0.5 pr-1 pl-2 text-xs font-medium"
             style={{ backgroundColor: `${label.color}26`, color: label.color }}
           >
+            <span
+              className="size-1.5 shrink-0 rounded-full"
+              style={{ backgroundColor: label.color }}
+              aria-hidden
+            />
             {label.name}
             {!readOnly && (
               <button
                 type="button"
                 aria-label={`Remove label ${label.name}`}
-                className="grid size-4 place-items-center rounded hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                className="grid size-5 place-items-center rounded opacity-70 hover:bg-black/10 hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none motion-safe:transition-opacity"
                 onClick={() => onChange(toInput(labels.filter((l) => l.id !== label.id)))}
               >
                 <X className="size-3" aria-hidden />
@@ -69,7 +74,7 @@ export function LabelsEditor({
             <Input
               aria-label="New label name"
               placeholder="Add a label"
-              className="h-8 w-44"
+              className="h-8 w-40"
               aria-invalid={!!form.formState.errors.name}
               {...form.register('name')}
             />
@@ -82,11 +87,11 @@ export function LabelsEditor({
           <input
             type="color"
             aria-label="Label color"
-            className="size-8 cursor-pointer rounded border bg-transparent p-0.5"
+            className="size-8 cursor-pointer rounded-md border bg-transparent p-0.5"
             {...form.register('color')}
           />
           <Button type="submit" variant="outline" size="sm">
-            Add label
+            Add
           </Button>
         </form>
       )}

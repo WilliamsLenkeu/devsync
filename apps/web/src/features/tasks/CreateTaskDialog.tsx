@@ -88,20 +88,25 @@ export function CreateTaskDialog({
   );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) form.reset(EMPTY);
+        onOpenChange(next);
+      }}
+    >
+      <DialogContent className="gap-0 p-0 sm:max-w-lg">
+        <DialogHeader className="space-y-1 border-b px-5 py-4">
           <DialogTitle>New task</DialogTitle>
-          <DialogDescription>
-            Tasks are numbered automatically within the project.
-          </DialogDescription>
+          <DialogDescription>Numbered automatically in this project.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={onSubmit} className="grid gap-4" noValidate>
+        <form onSubmit={onSubmit} className="grid gap-4 px-5 py-4" noValidate>
           <div className="grid gap-1.5">
             <Label htmlFor="new-task-title">Title</Label>
             <Input
               id="new-task-title"
               autoFocus
+              placeholder="What needs to be done?"
               aria-invalid={!!form.formState.errors.title}
               {...form.register('title')}
             />
@@ -113,9 +118,15 @@ export function CreateTaskDialog({
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="new-task-description">Description</Label>
-            <Textarea id="new-task-description" rows={4} {...form.register('description')} />
+            <Textarea
+              id="new-task-description"
+              rows={3}
+              placeholder="Optional details…"
+              className="resize-y"
+              {...form.register('description')}
+            />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <Controller
               control={form.control}
               name="status"
@@ -123,7 +134,7 @@ export function CreateTaskDialog({
                 <div className="grid gap-1.5">
                   <Label>Status</Label>
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger aria-label="Status">
+                    <SelectTrigger aria-label="Status" className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -144,7 +155,7 @@ export function CreateTaskDialog({
                 <div className="grid gap-1.5">
                   <Label>Priority</Label>
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger aria-label="Priority">
+                    <SelectTrigger aria-label="Priority" className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -165,7 +176,7 @@ export function CreateTaskDialog({
                 <div className="grid gap-1.5">
                   <Label>Assignee</Label>
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger aria-label="Assignee">
+                    <SelectTrigger aria-label="Assignee" className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -192,7 +203,7 @@ export function CreateTaskDialog({
               Comma-separated. Colors are assigned automatically.
             </p>
           </div>
-          <DialogFooter>
+          <DialogFooter className="-mx-5 -mb-4 border-t bg-muted/20 px-5 py-3 sm:justify-end">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>

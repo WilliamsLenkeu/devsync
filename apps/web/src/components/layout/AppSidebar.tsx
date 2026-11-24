@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 import { Logo } from '@/components/layout/Logo';
+import { navLinkClass } from '@/components/layout/navLinkClass';
+import { projectTint } from '@/components/layout/projectTint';
 import { WorkspaceSwitcher } from '@/components/layout/WorkspaceSwitcher';
 import { api } from '@/lib/api';
 import { qk } from '@/lib/queryKeys';
@@ -24,21 +26,29 @@ interface AppSidebarProps {
 
 export function AppSidebar({ workspace, onNavigate }: AppSidebarProps) {
   return (
-    <div className="flex h-full flex-col gap-4 py-4">
-      <div className="flex items-center gap-2 px-4">
+    <div className="flex h-full flex-col bg-sidebar">
+      <div className="flex items-center gap-2 border-b border-sidebar-border px-3 py-2.5">
         <Logo />
         <Link
           to="/app"
           onClick={onNavigate}
-          className="rounded-md text-sm font-semibold outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          className="rounded-md text-sm font-semibold tracking-tight text-sidebar-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
         >
           DevSync
         </Link>
       </div>
-      <div className="px-3">
+      <div className="border-b border-sidebar-border px-2.5 py-2.5">
         <WorkspaceSwitcher current={workspace} />
       </div>
-      {workspace && <WorkspaceNav workspace={workspace} onNavigate={onNavigate} />}
+      {workspace ? (
+        <WorkspaceNav workspace={workspace} onNavigate={onNavigate} />
+      ) : (
+        <div className="flex-1 px-3 py-5">
+          <p className="text-sm text-sidebar-foreground/65 text-pretty">
+            Choose a workspace to open its board and settings.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -55,6 +65,7 @@ function WorkspaceNav({
     queryKey: [...qk.projects(workspace.id), { status: 'ACTIVE' }],
     queryFn: () => api.get<Project[]>(`/workspaces/${workspace.id}/projects`, { status: 'ACTIVE' }),
   });
+
   const links: NavItem[] = [
     { to: base, label: 'Dashboard', icon: LayoutDashboard, end: true },
     { to: `${base}/projects`, label: 'Projects', icon: FolderKanban },
@@ -67,7 +78,7 @@ function WorkspaceNav({
   ];
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-2 py-3">
       <nav aria-label="Workspace">
         <ul className="grid gap-0.5">
           {links.map((item) => (
@@ -77,11 +88,20 @@ function WorkspaceNav({
           ))}
         </ul>
       </nav>
-      {projects.data && projects.data.length > 0 && (
+
+      {projects.isPending ? (
+        <p className="px-2.5 text-xs text-sidebar-foreground/55" aria-busy="true">
+          Loading projects…
+        </p>
+      ) : projects.isError ? (
+        <p className="px-2.5 text-xs text-destructive" role="alert">
+          Could not load projects.
+        </p>
+      ) : projects.data.length > 0 ? (
         <nav aria-labelledby="sidebar-projects">
           <h2
             id="sidebar-projects"
-            className="px-2 pb-1.5 text-xs font-medium text-muted-foreground"
+            className="px-2.5 pb-1.5 text-[11px] font-medium tracking-wide text-sidebar-foreground/50 uppercase"
           >
             Active projects
           </h2>
@@ -91,10 +111,14 @@ function WorkspaceNav({
                 <NavLink
                   to={`${base}/projects/${p.id}/board`}
                   onClick={onNavigate}
-                  className={({ isActive }) => linkClass(isActive)}
+                  className={({ isActive }) => navLinkClass(isActive)}
                 >
-                  <span className="truncate">{p.name}</span>
-                  <span className="ml-auto font-mono text-[11px] text-muted-foreground">
+                  <span
+                    aria-hidden
+                    className={cn('size-2 shrink-0 rounded-[3px]', projectTint(p.identifier))}
+                  />
+                  <span className="min-w-0 flex-1 truncate">{p.name}</span>
+                  <span className="shrink-0 font-mono text-[11px] text-sidebar-foreground/45">
                     {p.identifier}
                   </span>
                 </NavLink>
@@ -102,7 +126,7 @@ function WorkspaceNav({
             ))}
           </ul>
         </nav>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -121,18 +145,10 @@ function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
       to={item.to}
       end={item.end}
       onClick={onNavigate}
-      className={({ isActive }) => linkClass(isActive)}
+      className={({ isActive }) => navLinkClass(isActive)}
     >
-      <Icon className="size-4 shrink-0" aria-hidden />
+      <Icon className="size-4 shrink-0 opacity-70" aria-hidden />
       {item.label}
     </NavLink>
   );
 }
-
-const linkClass = (active: boolean) =>
-  cn(
-    'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50',
-    active
-      ? 'bg-sidebar-accent font-medium text-foreground'
-      : 'text-sidebar-foreground hover:bg-sidebar-accent/60',
-  );

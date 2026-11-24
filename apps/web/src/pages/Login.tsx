@@ -35,7 +35,7 @@ export function LoginPage() {
     );
 
   return (
-    <AuthShell title="Sign in" description="Sign in to continue to your workspaces.">
+    <AuthShell title="Sign in" description="Enter your email and password to open your workspaces.">
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="grid gap-4">
         {errors.root && <FormAlert message={errors.root.message ?? 'Sign in failed'} />}
         <Field id="email" label="Email" error={errors.email?.message}>
@@ -43,8 +43,12 @@ export function LoginPage() {
             id="email"
             type="email"
             autoComplete="email"
+            autoFocus
+            placeholder="you@company.com"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'email-error' : undefined}
+            disabled={isSubmitting}
+            className="min-h-11"
             {...register('email')}
           />
         </Field>
@@ -54,17 +58,24 @@ export function LoginPage() {
             autoComplete="current-password"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? 'password-error' : undefined}
+            disabled={isSubmitting}
+            className="min-h-11"
             {...register('password')}
           />
         </Field>
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          className="mt-1 min-h-11 w-full"
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+        >
           {isSubmitting ? 'Signing in…' : 'Sign in'}
         </Button>
         <p className="text-center text-sm text-muted-foreground">
           New to DevSync?{' '}
           <Link
             to={withNext('/register', next)}
-            className="font-medium text-primary underline-offset-4 hover:underline"
+            className="font-medium text-foreground underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             Create an account
           </Link>

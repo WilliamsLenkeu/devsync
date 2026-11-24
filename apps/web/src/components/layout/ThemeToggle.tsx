@@ -18,10 +18,16 @@ export const THEME_OPTIONS: { value: Theme; label: string; icon: LucideIcon }[] 
 export function ThemeToggle() {
   const { theme, resolved, setTheme } = useTheme();
   const Icon = resolved === 'dark' ? Moon : Sun;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={`Theme: ${theme}. Change theme`}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-11 transition-colors duration-150 md:size-8"
+          aria-label={`Theme: ${theme}. Change theme`}
+        >
           <Icon aria-hidden />
         </Button>
       </DropdownMenuTrigger>

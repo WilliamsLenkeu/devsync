@@ -90,12 +90,15 @@ export function KanbanBoard({ tasks, canDrag, manualOrder, onMove }: KanbanBoard
         },
       }}
     >
-      <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto pb-4">
+      {/* Columns scroll horizontally; page itself must not overflow. */}
+      <div className="-mx-1 flex min-h-0 min-w-0 flex-1 gap-2.5 overflow-x-auto overflow-y-hidden px-1 pb-2">
         {TASK_STATUSES.map((status) => (
           <BoardColumn key={status} status={status} tasks={groups[status]} canDrag={canDrag} />
         ))}
       </div>
-      <DragOverlay>{draggedTask && <TaskCardView task={draggedTask} overlay />}</DragOverlay>
+      <DragOverlay dropAnimation={null}>
+        {draggedTask && <TaskCardView task={draggedTask} overlay />}
+      </DragOverlay>
     </DndContext>
   );
 }
@@ -116,23 +119,28 @@ function BoardColumn({
   });
 
   return (
-    <section aria-labelledby={`column-${status}`} className="flex w-72 shrink-0 flex-col sm:w-80">
-      <header className="flex items-center justify-between px-1 pb-2">
-        <h2 id={`column-${status}`} className="text-sm font-medium">
+    <section
+      aria-labelledby={`column-${status}`}
+      className="flex w-[min(100%,16.5rem)] shrink-0 flex-col sm:w-72"
+    >
+      <header className="flex items-baseline gap-2 border-b border-border px-1 pb-1.5">
+        <h2 id={`column-${status}`} className="truncate text-sm font-semibold tracking-tight">
           {title}
         </h2>
         <span
-          className="rounded-full bg-muted px-2 text-xs text-muted-foreground tabular-nums"
+          className="font-mono text-[11px] font-medium tabular-nums text-muted-foreground"
           aria-label={`${tasks.length} tasks`}
         >
           {tasks.length}
         </span>
       </header>
+
       <div
         ref={setNodeRef}
         className={cn(
-          'flex min-h-32 flex-1 flex-col gap-2 rounded-lg border border-transparent bg-muted/50 p-2 transition-colors',
-          isOver && 'border-primary/40 bg-accent/50',
+          'mt-1.5 flex min-h-28 flex-1 flex-col gap-1 rounded-md border border-transparent bg-muted/40 p-1',
+          'motion-safe:transition-[background-color,border-color,box-shadow] motion-safe:duration-150',
+          isOver && 'border-primary bg-accent/55 shadow-[inset_0_0_0_1px] shadow-primary/30',
         )}
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
@@ -141,8 +149,9 @@ function BoardColumn({
           ))}
         </SortableContext>
         {tasks.length === 0 && (
-          <p className="grid flex-1 place-items-center py-6 text-xs text-muted-foreground">
-            No tasks in {title}
+          <p className="grid flex-1 place-items-center px-2 py-8 text-center text-[11px] text-muted-foreground text-balance">
+            Drop tasks here
+            <span className="sr-only">. {title} is empty.</span>
           </p>
         )}
       </div>

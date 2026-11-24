@@ -22,7 +22,7 @@ export function ProfilePage() {
   useDocumentTitle('Profile');
   const user = useUser();
   return (
-    <div className="mx-auto grid max-w-2xl gap-10 p-6 lg:p-8">
+    <div className="mx-auto grid max-w-xl gap-6 p-4 sm:p-6 lg:p-8">
       <PageHeader title="Profile" description="How you appear to your teammates." />
       <ProfileForm user={user} />
       <PasswordForm />
@@ -60,12 +60,12 @@ function ProfileForm({ user }: { user: User }) {
   });
 
   return (
-    <section aria-labelledby="profile-title" className="grid gap-5">
+    <section aria-labelledby="profile-title" className="grid gap-4 rounded-lg border border-border bg-card p-5 shadow-none">
       <div>
         <h2 id="profile-title" className="text-sm font-medium">
           Profile details
         </h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="mt-0.5 text-sm text-muted-foreground">
           Email is managed by your account and cannot be changed here.
         </p>
       </div>
@@ -106,7 +106,7 @@ function ProfileForm({ user }: { user: User }) {
           />
         </Field>
         <div>
-          <Button type="submit" disabled={!isDirty || isSubmitting}>
+          <Button type="submit" className="min-h-11 sm:min-h-9" disabled={!isDirty || isSubmitting}>
             {isSubmitting ? 'Saving…' : 'Save changes'}
           </Button>
         </div>
@@ -141,12 +141,12 @@ function PasswordForm() {
   });
 
   return (
-    <section aria-labelledby="password-title" className="grid gap-5 border-t pt-10">
+    <section aria-labelledby="password-title" className="grid gap-4 rounded-lg border border-border bg-card p-5 shadow-none">
       <div>
         <h2 id="password-title" className="text-sm font-medium">
           Change password
         </h2>
-        <p className="text-sm text-muted-foreground">Use at least 8 characters.</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">Use at least 8 characters.</p>
       </div>
       <form onSubmit={onSubmit} noValidate className="grid gap-4">
         {errors.root && (
@@ -188,7 +188,7 @@ function PasswordForm() {
           />
         </Field>
         <div>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" className="min-h-11 sm:min-h-9" disabled={isSubmitting}>
             {isSubmitting ? 'Updating…' : 'Update password'}
           </Button>
         </div>

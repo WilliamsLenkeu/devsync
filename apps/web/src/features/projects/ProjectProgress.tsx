@@ -6,40 +6,61 @@ import type { Project } from '@/lib/types';
 import { percent, ProgressBar } from './ProgressBar';
 import { useProjectTasks } from './queries';
 
-/** Totals come from the project itself; the per-status breakdown needs the task list. */
+/** Totals from project; per-status counts from the real task list (R-17). Flat band. */
 export function ProjectProgress({ project }: { project: Project }) {
   const tasks = useProjectTasks(project.id);
   const { total, done } = project.taskCounts;
 
   return (
-    <section aria-labelledby="progress-heading" className="rounded-xl border bg-card p-5">
-      <h2 id="progress-heading" className="text-sm font-semibold">
-        Progress
-      </h2>
-      <div className="mt-3 flex justify-between text-sm">
-        <span>
-          {done} of {total} tasks done
+    <section aria-labelledby="progress-heading" className="space-y-3 border-y border-border py-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 id="progress-heading" className="text-sm font-semibold tracking-tight">
+            Progress
+          </h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {done} of {total} tasks done
+          </p>
+        </div>
+        <span className="text-xl font-semibold tabular-nums tracking-tight text-primary">
+          {percent(done, total)}%
         </span>
-        <span className="text-muted-foreground">{percent(done, total)}%</span>
       </div>
-      <ProgressBar done={done} total={total} className="mt-2" />
+      <ProgressBar done={done} total={total} />
 
-      <div className="mt-5">
-        {tasks.isPending && <Skeleton className="h-16" />}
-        {tasks.isError && <ErrorState error={tasks.error} onRetry={() => void tasks.refetch()} />}
-        {tasks.data && (
-          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-            {TASK_STATUSES.map((status) => (
-              <div key={status} className="rounded-md bg-muted/60 px-3 py-2">
-                <dt className="text-xs text-muted-foreground">{humanize(status)}</dt>
-                <dd className="text-lg font-semibold tabular-nums">
-                  {tasks.data.filter((t) => t.status === status).length}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        )}
-      </div>
+      {tasks.isPending && (
+        <dl
+          className="flex flex-col border-t border-border pt-3 sm:flex-row sm:divide-x sm:divide-border"
+          aria-busy="true"
+          aria-label="Loading status counts"
+        >
+          {TASK_STATUSES.map((status) => (
+            <div
+              key={status}
+              className="flex flex-1 items-baseline justify-between gap-2 border-b border-border py-1.5 last:border-b-0 sm:flex-col sm:gap-0.5 sm:border-b-0 sm:px-3 sm:py-0 first:sm:pl-0 last:sm:pr-0"
+            >
+              <Skeleton className="h-3 w-14" />
+              <Skeleton className="h-5 w-6" />
+            </div>
+          ))}
+        </dl>
+      )}
+      {tasks.isError && <ErrorState error={tasks.error} onRetry={() => void tasks.refetch()} />}
+      {tasks.data && (
+        <dl className="flex flex-col border-t border-border pt-3 sm:flex-row sm:divide-x sm:divide-border">
+          {TASK_STATUSES.map((status) => (
+            <div
+              key={status}
+              className="flex flex-1 items-baseline justify-between gap-2 border-b border-border py-1.5 last:border-b-0 sm:flex-col sm:gap-0.5 sm:border-b-0 sm:px-3 sm:py-0 first:sm:pl-0 last:sm:pr-0"
+            >
+              <dt className="text-[11px] text-muted-foreground">{humanize(status)}</dt>
+              <dd className="text-base font-semibold tabular-nums">
+                {tasks.data.filter((t) => t.status === status).length}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
     </section>
   );
 }

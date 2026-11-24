@@ -8,7 +8,8 @@ const ThemeContext = createContext<{ theme: Theme; resolved: 'light' | 'dark'; s
 const systemDark = () => matchMedia('(prefers-color-scheme: dark)').matches;
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => (localStorage.getItem(KEY) as Theme | null) ?? 'light');
+  // DESIGN.md v3: dark-first product language for eng tools; user can still pick light/system.
+  const [theme, setThemeState] = useState<Theme>(() => (localStorage.getItem(KEY) as Theme | null) ?? 'dark');
   const [dark, setDark] = useState(() => (theme === 'system' ? systemDark() : theme === 'dark'));
 
   useEffect(() => {

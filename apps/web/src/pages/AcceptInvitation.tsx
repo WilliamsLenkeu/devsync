@@ -1,12 +1,19 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useDocumentTitle } from '@/components/layout/useDocumentTitle';
 import { Button } from '@/components/ui/button';
+import { AuthShell } from '@/features/auth/AuthShell';
 import { api, errorMessage } from '@/lib/api';
 import { qk } from '@/lib/queryKeys';
 import type { Workspace } from '@/lib/types';
+
+type Phase =
+  | { kind: 'empty' }
+  | { kind: 'loading' }
+  | { kind: 'success' }
+  | { kind: 'error'; error: unknown };
 
 export function AcceptInvitationPage() {
   useDocumentTitle('Accept invitation');
@@ -15,53 +22,75 @@ export function AcceptInvitationPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const started = useRef(false);
+  const [phase, setPhase] = useState<Phase>(token ? { kind: 'loading' } : { kind: 'empty' });
 
-  const accept = useMutation({
-    mutationFn: () => api.post<Workspace>('/invitations/accept', { token }),
-    onSuccess: (ws) => {
-      void qc.invalidateQueries({ queryKey: qk.workspaces });
-      void qc.invalidateQueries({ queryKey: qk.myInvitations });
-      toast.success(`Joined ${ws.name}`);
-      navigate(`/w/${ws.id}`, { replace: true });
-    },
-  });
-  const { mutate } = accept;
-
-  // Ref guard: StrictMode runs effects twice and a token can only be consumed once.
+  // Ref guard: StrictMode re-runs effects; a token can only be consumed once.
   useEffect(() => {
     if (!token || started.current) return;
     started.current = true;
-    mutate();
-  }, [token, mutate]);
+    void (async () => {
+      try {
+        const ws = await api.post<Workspace>('/invitations/accept', { token });
+        void qc.invalidateQueries({ queryKey: qk.workspaces });
+        void qc.invalidateQueries({ queryKey: qk.myInvitations });
+        toast.success(`Joined ${ws.name}`);
+        setPhase({ kind: 'success' });
+        navigate(`/w/${ws.id}`, { replace: true });
+      } catch (error) {
+        setPhase({ kind: 'error', error });
+      }
+    })();
+  }, [token, qc, navigate]);
 
-  if (!token) {
+  if (phase.kind === 'empty') {
     return (
-      <Result
+      <AuthShell
         title="Invitation link incomplete"
-        message="This link is missing its invitation token. Open the link again from your email or ask for a new invitation."
-      />
-    );
-  }
-  if (accept.isError) {
-    return <Result title="Invitation not accepted" message={errorMessage(accept.error)} />;
-  }
-  return (
-    <div role="status" aria-live="polite" className="grid min-h-[60dvh] place-items-center p-6">
-      <p className="text-sm text-muted-foreground">Joining workspace…</p>
-    </div>
-  );
-}
-
-function Result({ title, message }: { title: string; message: string }) {
-  return (
-    <div className="grid min-h-[60dvh] place-items-center p-6">
-      <div className="max-w-md text-center">
-        <h1 className="text-lg font-semibold tracking-tight text-balance">{title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground text-pretty">{message}</p>
-        <Button asChild variant="outline" className="mt-6">
+        description="This link is missing its invitation token. Open the link again from your email or ask for a new invitation."
+      >
+        <Button asChild variant="outline" className="min-h-11 w-full">
           <Link to="/app">Back to workspaces</Link>
         </Button>
-      </div>
-    </div>
+      </AuthShell>
+    );
+  }
+
+  if (phase.kind === 'error') {
+    return (
+      <AuthShell
+        title="Invitation not accepted"
+        description={errorMessage(phase.error, 'This invitation could not be accepted.')}
+      >
+        <Button asChild variant="outline" className="min-h-11 w-full">
+          <Link to="/app">Back to workspaces</Link>
+        </Button>
+      </AuthShell>
+    );
+  }
+
+  if (phase.kind === 'success') {
+    return (
+      <AuthShell title="You're in" description="Opening your workspace…">
+        <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+          Redirecting…
+        </p>
+      </AuthShell>
+    );
+  }
+
+  return (
+    <AuthShell
+      title="Accepting invitation"
+      description="Joining the workspace from your invite link."
+    >
+      <p
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+        className="text-sm text-muted-foreground"
+      >
+        Joining workspace…
+      </p>
+    </AuthShell>
   );
 }
