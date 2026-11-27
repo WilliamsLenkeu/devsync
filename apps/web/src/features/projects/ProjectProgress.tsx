@@ -1,22 +1,30 @@
-import { TASK_STATUSES } from '@devsync/shared';
-import { ErrorState } from '@/components/states';
+import { TASK_STATUSES, type TaskStatus } from '@devsync/shared';
+import { InlineNotice } from '@/components/feedback';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { humanize } from '@/lib/format';
 import type { Project } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { STATUS_CHIP } from '@/features/tasks/milk';
-import { percent, ProgressBar } from './ProgressBar';
+import { percent, ProgressBar, SegmentedProgress } from './ProgressBar';
 import { useProjectTasks } from './queries';
 
-/** Milk Desk progress band with status chips. */
+/** Milk Desk progress band — segmented stages + status chips. */
 export function ProjectProgress({ project }: { project: Project }) {
   const tasks = useProjectTasks(project.id);
   const { total, done } = project.taskCounts;
 
+  const counts: Partial<Record<TaskStatus, number>> = {};
+  if (tasks.data) {
+    for (const status of TASK_STATUSES) {
+      counts[status] = tasks.data.filter((t) => t.status === status).length;
+    }
+  }
+
   return (
     <section
       aria-labelledby="progress-heading"
-      className="space-y-2.5 border-y border-[#DEE2E6] bg-white py-3.5"
+      className="space-y-3 rounded-lg border border-[#DEE2E6] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,.04)]"
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -31,32 +39,52 @@ export function ProjectProgress({ project }: { project: Project }) {
           {percent(done, total)}%
         </span>
       </div>
-      <ProgressBar done={done} total={total} />
+
+      {tasks.data ? (
+        <SegmentedProgress counts={counts} />
+      ) : (
+        <ProgressBar done={done} total={total} />
+      )}
 
       {tasks.isPending && (
         <dl
-          className="flex flex-col border-t border-[#DEE2E6] pt-3 sm:flex-row sm:divide-x sm:divide-[#DEE2E6]"
+          className="grid grid-cols-2 gap-2 border-t border-[#DEE2E6] pt-3 sm:grid-cols-5"
           aria-busy="true"
           aria-label="Loading status counts"
         >
           {TASK_STATUSES.map((status) => (
-            <div
-              key={status}
-              className="flex flex-1 items-baseline justify-between gap-2 border-b border-[#DEE2E6] py-1.5 last:border-b-0 sm:flex-col sm:gap-0.5 sm:border-b-0 sm:px-3 sm:py-0 first:sm:pl-0 last:sm:pr-0"
-            >
+            <div key={status} className="rounded-md border border-[#DEE2E6] bg-[#F8F9FA] px-2.5 py-2">
               <Skeleton className="h-3 w-14" />
-              <Skeleton className="h-5 w-6" />
+              <Skeleton className="mt-2 h-5 w-6" />
             </div>
           ))}
         </dl>
       )}
-      {tasks.isError && <ErrorState error={tasks.error} onRetry={() => void tasks.refetch()} />}
+
+      {tasks.isError && (
+        <InlineNotice
+          tone="error"
+          title="Could not load stage breakdown"
+          description="Task counts by column are unavailable right now."
+          action={
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 border-[#F5C6CB] bg-white"
+              onClick={() => void tasks.refetch()}
+            >
+              Try again
+            </Button>
+          }
+        />
+      )}
+
       {tasks.data && (
-        <dl className="flex flex-col border-t border-[#DEE2E6] pt-3 sm:flex-row sm:divide-x sm:divide-[#DEE2E6]">
+        <dl className="grid grid-cols-2 gap-2 border-t border-[#DEE2E6] pt-3 sm:grid-cols-5">
           {TASK_STATUSES.map((status) => (
             <div
               key={status}
-              className="flex flex-1 items-baseline justify-between gap-2 border-b border-[#DEE2E6] py-1.5 last:border-b-0 sm:flex-col sm:gap-1 sm:border-b-0 sm:px-3 sm:py-0 first:sm:pl-0 last:sm:pr-0"
+              className="rounded-md border border-[#DEE2E6] bg-[#F8F9FA] px-2.5 py-2"
             >
               <dt>
                 <span
@@ -68,8 +96,8 @@ export function ProjectProgress({ project }: { project: Project }) {
                   {humanize(status)}
                 </span>
               </dt>
-              <dd className="text-base font-semibold tabular-nums text-[#212529]">
-                {tasks.data.filter((t) => t.status === status).length}
+              <dd className="mt-1.5 text-base font-semibold tabular-nums text-[#212529]">
+                {counts[status] ?? 0}
               </dd>
             </div>
           ))}

@@ -5,7 +5,7 @@ import {
   type QueryClient,
   type QueryKey,
 } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { notify } from '@/components/feedback';
 import { api, errorMessage } from '@/lib/api';
 import { qk } from '@/lib/queryKeys';
 import type { Task } from '@/lib/types';
@@ -57,10 +57,10 @@ export function useCreateTask(scope: TaskScope) {
     mutationFn: (body: CreateTaskBody) =>
       api.post<Task>(`/projects/${scope.projectId}/tasks`, body),
     onSuccess: () => {
-      toast.success('Task created');
+      notify.success('Task created');
       return invalidateTask(qc, scope);
     },
-    onError: (err) => toast.error(errorMessage(err, 'Could not create the task')),
+    onError: (err) => notify.error('Could not create the task', { description: errorMessage(err) }),
   });
 }
 
@@ -81,7 +81,7 @@ export function useMoveTask(scope: TaskScope) {
     },
     onError: (err, _vars, ctx) => {
       ctx?.snapshot.forEach(([key, data]) => qc.setQueryData(key, data));
-      toast.error(errorMessage(err, 'Could not move the task'));
+      notify.error('Could not move the task', { description: errorMessage(err) });
     },
     onSuccess: (_task, { taskId }) => invalidateTask(qc, scope, taskId),
   });
@@ -93,7 +93,7 @@ export function useUpdateTask(scope: TaskScope) {
     mutationFn: ({ taskId, body }: { taskId: string; body: UpdateTaskBody }) =>
       api.patch<Task>(`/tasks/${taskId}`, body),
     onSuccess: (_task, { taskId }) => invalidateTask(qc, scope, taskId),
-    onError: (err) => toast.error(errorMessage(err, 'Could not save the task')),
+    onError: (err) => notify.error('Could not save the task', { description: errorMessage(err) }),
   });
 }
 
@@ -102,11 +102,11 @@ export function useDeleteTask(scope: TaskScope) {
   return useMutation({
     mutationFn: (taskId: string) => api.delete(`/tasks/${taskId}`),
     onSuccess: (_void, taskId) => {
-      toast.success('Task deleted');
+      notify.success('Task deleted');
       qc.removeQueries({ queryKey: qk.task(taskId) });
       return invalidateTask(qc, scope);
     },
-    onError: (err) => toast.error(errorMessage(err, 'Could not delete the task')),
+    onError: (err) => notify.error('Could not delete the task', { description: errorMessage(err) }),
   });
 }
 
@@ -116,7 +116,7 @@ export function useCreateComment(scope: TaskScope) {
     mutationFn: ({ taskId, body }: { taskId: string; body: string }) =>
       api.post<unknown>(`/tasks/${taskId}/comments`, { body }),
     onSuccess: (_void, { taskId }) => invalidateTask(qc, scope, taskId),
-    onError: (err) => toast.error(errorMessage(err, 'Could not post the comment')),
+    onError: (err) => notify.error('Could not post the comment', { description: errorMessage(err) }),
   });
 }
 
@@ -126,6 +126,7 @@ export function useDeleteComment(scope: TaskScope) {
     mutationFn: ({ commentId }: { commentId: string; taskId: string }) =>
       api.delete(`/comments/${commentId}`),
     onSuccess: (_void, { taskId }) => invalidateTask(qc, scope, taskId),
-    onError: (err) => toast.error(errorMessage(err, 'Could not delete the comment')),
+    onError: (err) =>
+      notify.error('Could not delete the comment', { description: errorMessage(err) }),
   });
 }

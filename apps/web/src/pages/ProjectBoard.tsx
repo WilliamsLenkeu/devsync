@@ -1,6 +1,7 @@
 import { Archive, ArrowLeft, KanbanSquare, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { InlineNotice, NoticeDialog, notify } from '@/components/feedback';
 import { EmptyState, ErrorState } from '@/components/states';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,6 +17,7 @@ import {
 } from '@/features/tasks/boardLogic';
 import { useProject, useProjectMembers, useProjectTasks } from '@/features/tasks/taskQueries';
 import { useMoveTask } from '@/features/tasks/taskMutations';
+import { errorMessage } from '@/lib/api';
 import { useWorkspace } from '@/lib/workspace';
 
 /** Milk Desk board — control panel + light kanban. */
@@ -24,6 +26,7 @@ export function ProjectBoardPage() {
   const { workspace, can } = useWorkspace();
   const [params, setParams] = useSearchParams();
   const [creating, setCreating] = useState(false);
+  const [loadHelpOpen, setLoadHelpOpen] = useState(false);
 
   const filters = parseBoardFilters(params);
   const project = useProject(projectId);
@@ -115,14 +118,49 @@ export function ProjectBoardPage() {
           }
         />
         {!manual && (
-          <p className="pb-2 text-[12px] text-[#8F8F8F]">
-            Column reordering is off while filters or a custom sort are active. Cross-column moves
-            still work.
-          </p>
+          <div className="pb-3">
+            <InlineNotice
+              tone="info"
+              title="Manual reorder paused"
+              description="Column reordering is off while filters or a custom sort are active. Cross-column moves still work."
+            />
+          </div>
         )}
       </div>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 sm:p-4">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 p-3 sm:p-4">
+        {tasks.isError && (
+          <InlineNotice
+            tone="error"
+            title="Board failed to load"
+            description={errorMessage(tasks.error)}
+            action={
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  className="h-8 bg-[#017E84] text-white hover:bg-[#016A6F]"
+                  onClick={() => {
+                    void tasks.refetch().then((r) => {
+                      if (r.isError) notify.error('Still failing', { description: errorMessage(r.error) });
+                      else notify.success('Board reloaded');
+                    });
+                  }}
+                >
+                  Try again
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 border-[#F5C6CB] bg-white"
+                  onClick={() => setLoadHelpOpen(true)}
+                >
+                  Details
+                </Button>
+              </div>
+            }
+          />
+        )}
+
         {tasks.data ? (
           tasks.data.length === 0 && !hasActiveFilters(filters) ? (
             <EmptyState
@@ -161,12 +199,28 @@ export function ProjectBoardPage() {
               onMove={(request) => move.mutate(request)}
             />
           )
-        ) : tasks.isError ? (
-          <ErrorState error={tasks.error} onRetry={() => void tasks.refetch()} />
-        ) : (
+        ) : tasks.isError ? null : (
           <BoardSkeleton />
         )}
       </div>
+
+      <NoticeDialog
+        open={loadHelpOpen}
+        onOpenChange={setLoadHelpOpen}
+        tone="error"
+        title="Could not load the board"
+        description={
+          tasks.error
+            ? errorMessage(tasks.error)
+            : 'Check that the API is reachable, then retry.'
+        }
+        confirmLabel="Retry"
+        cancelLabel="Close"
+        onConfirm={() => {
+          setLoadHelpOpen(false);
+          void tasks.refetch();
+        }}
+      />
 
       {canWrite && (
         <CreateTaskDialog

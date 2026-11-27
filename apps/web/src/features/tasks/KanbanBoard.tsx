@@ -23,7 +23,7 @@ import { humanize } from '@/lib/format';
 import type { Task } from '@/lib/types';
 import { getDropTarget, groupByStatus, isNoopDrop, type DropTarget } from './boardLogic';
 import { SortableTaskCard, TaskCardView, type DragData } from './BoardCard';
-import { STATUS_CHIP, prefersReducedMotion } from './milk';
+import { STATUS_ACCENT, STATUS_CHIP, prefersReducedMotion } from './milk';
 
 export interface MoveRequest extends DropTarget {
   taskId: string;
@@ -61,12 +61,12 @@ export function KanbanBoard({ tasks, canDrag, manualOrder, onMove }: KanbanBoard
     const ctx = gsap.context(() => {
       gsap.fromTo(
         cols,
-        { autoAlpha: 0, y: 12 },
+        { autoAlpha: 0, y: 10 },
         {
           autoAlpha: 1,
           y: 0,
-          duration: 0.32,
-          stagger: 0.05,
+          duration: 0.28,
+          stagger: 0.04,
           ease: 'power2.out',
           clearProps: 'transform',
         },
@@ -74,13 +74,13 @@ export function KanbanBoard({ tasks, canDrag, manualOrder, onMove }: KanbanBoard
       if (cards.length) {
         gsap.fromTo(
           cards,
-          { autoAlpha: 0, y: 8 },
+          { autoAlpha: 0, y: 6 },
           {
             autoAlpha: 1,
             y: 0,
-            duration: 0.24,
-            stagger: 0.025,
-            delay: 0.1,
+            duration: 0.22,
+            stagger: 0.02,
+            delay: 0.08,
             ease: 'power2.out',
             clearProps: 'transform',
           },
@@ -135,7 +135,7 @@ export function KanbanBoard({ tasks, canDrag, manualOrder, onMove }: KanbanBoard
     >
       <div
         ref={rootRef}
-        className="-mx-1 flex min-h-0 min-w-0 flex-1 gap-3 overflow-x-auto overflow-y-hidden bg-[#F8F9FA] px-1 pb-2"
+        className="-mx-1 flex min-h-0 min-w-0 flex-1 gap-3 overflow-x-auto overflow-y-hidden px-1 pb-2"
       >
         {TASK_STATUSES.map((status) => (
           <BoardColumn key={status} status={status} tasks={groups[status]} canDrag={canDrag} />
@@ -162,15 +162,17 @@ function BoardColumn({
     id: columnDomId(status),
     data: { status } satisfies DragData,
   });
+  const accent = STATUS_ACCENT[status];
 
   return (
     <section
       data-milk-col
       aria-labelledby={`column-${status}`}
-      className="flex w-[min(100%,17rem)] shrink-0 flex-col rounded-lg border border-[#DEE2E6] bg-[#F8F9FA] sm:w-72"
+      className="flex w-[min(100%,17.5rem)] shrink-0 flex-col overflow-hidden rounded-lg border border-[#DEE2E6] bg-white shadow-[0_1px_2px_rgba(0,0,0,.04)] sm:w-72"
     >
-      <header className="flex items-center gap-2 border-b border-[#DEE2E6] bg-white px-3 py-2.5">
-        <h2 id={`column-${status}`} className="truncate text-sm font-semibold text-[#212529]">
+      <div className="h-1 w-full shrink-0" style={{ backgroundColor: accent }} aria-hidden />
+      <header className="flex items-center gap-2 border-b border-[#DEE2E6] bg-[#F8F9FA] px-3 py-2.5">
+        <h2 id={`column-${status}`} className="min-w-0 flex-1 truncate text-sm font-semibold text-[#212529]">
           {title}
         </h2>
         <span
@@ -187,8 +189,8 @@ function BoardColumn({
       <div
         ref={setNodeRef}
         className={cn(
-          'flex min-h-28 flex-1 flex-col gap-2 p-2 motion-safe:transition-colors motion-safe:duration-150',
-          isOver && 'bg-[#017E84]/10 ring-2 ring-inset ring-[#017E84]/40',
+          'flex min-h-32 flex-1 flex-col gap-2 bg-[#F8F9FA] p-2 motion-safe:transition-[box-shadow,background-color] motion-safe:duration-150',
+          isOver && 'bg-[#017E84]/08 ring-2 ring-inset ring-[#017E84]/35',
         )}
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
@@ -197,7 +199,7 @@ function BoardColumn({
           ))}
         </SortableContext>
         {tasks.length === 0 && (
-          <p className="grid flex-1 place-items-center px-2 py-8 text-center text-[12px] text-[#8F8F8F] text-balance">
+          <p className="grid flex-1 place-items-center rounded-md border border-dashed border-[#DEE2E6] bg-white/70 px-2 py-10 text-center text-[12px] text-[#8F8F8F] text-balance">
             Drop tasks here
             <span className="sr-only">. {title} is empty.</span>
           </p>

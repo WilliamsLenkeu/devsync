@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { formatDate, humanize, isOverdue } from '@/lib/format';
 import type { Task } from '@/lib/types';
 import { taskHref, withTaskParam } from './boardLogic';
-import { MILK, PRIORITY_CHIP, prefersReducedMotion } from './milk';
+import { MILK, PRIORITY_CHIP, PRIORITY_RAIL, prefersReducedMotion } from './milk';
 
 export interface DragData {
   status: TaskStatus;
@@ -91,15 +91,22 @@ export function TaskCardView({
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
       className={cn(
-        'relative rounded-lg border border-[#DEE2E6] bg-white p-2.5',
+        'relative overflow-hidden rounded-md border border-[#DEE2E6] bg-white',
         'will-change-transform',
         overlay && 'border-[#017E84] ring-2 ring-[#017E84]/25',
         selected && !overlay && 'border-[#017E84] ring-2 ring-[#017E84]/20',
-        overdue && !selected && !overlay && 'border-[#DC3545]/40',
+        overdue && !selected && !overlay && 'border-[#DC3545]/45',
         'has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-[#017E84]',
       )}
       style={{ boxShadow: overlay || selected ? MILK.shadowLift : MILK.shadow }}
     >
+      <div className="flex">
+        <div
+          className="w-[3px] shrink-0 self-stretch"
+          style={{ backgroundColor: PRIORITY_RAIL[task.priority] }}
+          aria-hidden
+        />
+        <div className="min-w-0 flex-1 p-2.5">
       <div className="flex items-start gap-0.5">
         {dragHandle}
         <div className="min-w-0 flex-1">
@@ -115,7 +122,7 @@ export function TaskCardView({
               e.preventDefault();
               setParams(withTaskParam(params, task.id));
             }}
-            className="mt-1 block text-sm leading-snug font-medium text-[#212529] text-pretty after:absolute after:inset-0 after:rounded-lg focus-visible:outline-none"
+            className="mt-1 block text-sm leading-snug font-medium text-[#212529] text-pretty after:absolute after:inset-0 after:rounded-md focus-visible:outline-none"
           >
             {task.title}
           </a>
@@ -176,6 +183,8 @@ export function TaskCardView({
             <UserRound className="size-3" aria-hidden />
           </span>
         )}
+      </div>
+        </div>
       </div>
     </article>
   );

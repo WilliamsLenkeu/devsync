@@ -32,9 +32,25 @@ export const STATUS_CHIP: Record<string, string> = {
   DONE: 'bg-[#D4EDDA] text-[#155724]',
 };
 
+/** Column top rail + segmented progress fills (hex for inline styles). */
+export const STATUS_ACCENT: Record<string, string> = {
+  BACKLOG: '#6C757D',
+  TODO: '#17A2B8',
+  IN_PROGRESS: '#017E84',
+  IN_REVIEW: '#F0AD4E',
+  DONE: '#28A745',
+};
+
 export const PRIORITY_CHIP: Record<string, string> = {
   URGENT: 'bg-[#F8D7DA] text-[#721C24]',
   HIGH: 'bg-[#FFF3CD] text-[#856404]',
   MEDIUM: 'bg-[#D1ECF1] text-[#0C5460]',
   LOW: 'bg-[#E9ECEF] text-[#6C757D]',
+};
+
+export const PRIORITY_RAIL: Record<string, string> = {
+  URGENT: '#DC3545',
+  HIGH: '#F0AD4E',
+  MEDIUM: '#17A2B8',
+  LOW: '#ADB5BD',
 };
