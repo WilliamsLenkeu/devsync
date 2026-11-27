@@ -3,8 +3,10 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { envelope, errorSchema, uuid } from '../../lib/schemas';
 import { pageQuery } from '../../lib/pagination';
 import type { Principal } from '../../types';
+import * as attachments from './attachments';
 import {
   activitySchema,
+  attachmentSchema,
   commentSchema,
   createCommentBody,
   createTaskBody,
@@ -183,6 +185,95 @@ const routes: FastifyPluginAsyncZod = async (app) => {
     },
     async (req, reply) => {
       await service.deleteComment(ctx(req.principal), req.params.commentId);
+      return reply.code(204).send(null);
+    },
+  );
+
+  app.get(
+    '/tasks/:taskId/attachments',
+    {
+      preHandler: app.requireUser,
+      schema: {
+        tags,
+        summary: 'List task attachments',
+        params: z.object({ taskId: uuid }),
+        response: { 200: envelope(z.array(attachmentSchema)), ...errors },
+      },
+    },
+    async (req) => ({
+      data: await attachments.listAttachments(ctx(req.principal), req.params.taskId),
+    }),
+  );
+
+  app.post(
+    '/tasks/:taskId/attachments',
+    {
+      preHandler: app.requireUser,
+      schema: {
+        tags,
+        summary: 'Upload a task attachment (multipart field "file"; optional commentId)',
+        params: z.object({ taskId: uuid }),
+        response: { 201: envelope(attachmentSchema), ...errors },
+      },
+    },
+    async (req, reply) => {
+      const file = await req.file();
+      if (!file) {
+        const { badRequest } = await import('../../errors');
+        throw badRequest('Missing multipart file field "file"');
+      }
+      const commentIdRaw = (file.fields as Record<string, { value?: string } | undefined>)
+        ?.commentId?.value;
+      const data = await attachments.createAttachment(ctx(req.principal), req.params.taskId, {
+        filename: file.filename,
+        contentType: file.mimetype,
+        body: file.file,
+        commentId: commentIdRaw || null,
+      });
+      return reply.code(201).send({ data });
+    },
+  );
+
+  app.get(
+    '/attachments/:attachmentId/download',
+    {
+      preHandler: app.requireUser,
+      schema: {
+        tags,
+        summary: 'Download an attachment',
+        params: z.object({ attachmentId: uuid }),
+        // Binary stream — no JSON response schema
+      },
+    },
+    async (req, reply) => {
+      const file = await attachments.openAttachmentDownload(
+        ctx(req.principal),
+        req.params.attachmentId,
+      );
+      reply
+        .header('Content-Type', file.contentType)
+        .header('Content-Length', String(file.byteSize))
+        .header(
+          'Content-Disposition',
+          `attachment; filename="${file.filename.replace(/"/g, '')}"`,
+        );
+      return reply.send(file.stream);
+    },
+  );
+
+  app.delete(
+    '/attachments/:attachmentId',
+    {
+      preHandler: app.requireUser,
+      schema: {
+        tags,
+        summary: 'Delete an attachment',
+        params: z.object({ attachmentId: uuid }),
+        response: { 204: z.null(), ...errors },
+      },
+    },
+    async (req, reply) => {
+      await attachments.deleteAttachment(ctx(req.principal), req.params.attachmentId);
       return reply.code(204).send(null);
     },
   );

@@ -54,8 +54,8 @@ jobs:
       - run: pnpm --filter @devsync/web build
 
   e2e:
-    # Opt-in: only when Playwright is configured in the repo.
-    if: ${{ hashFiles('apps/web/playwright.config.ts') != '' }}
+    # Opt-in: set repository variable RUN_E2E=true once Playwright smoke is stable.
+    if: ${{ vars.RUN_E2E == 'true' && hashFiles('apps/web/playwright.config.ts') != '' }}
     needs: check
     runs-on: ubuntu-latest
     services:

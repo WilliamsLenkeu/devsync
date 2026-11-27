@@ -1,5 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { TASK_PRIORITIES, TASK_STATUSES } from '@devsync/shared';
+import gsap from 'gsap';
+import { useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -24,6 +26,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { humanize } from '@/lib/format';
 import type { ProjectMember } from '@/lib/types';
 import { dateInputToIso, parseLabelNames } from './boardLogic';
+import { prefersReducedMotion } from './milk';
 import { useCreateTask, type TaskScope } from './taskMutations';
 
 const NONE = 'none';
@@ -66,6 +69,21 @@ export function CreateTaskDialog({
 }) {
   const create = useCreateTask(scope);
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: EMPTY });
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open || prefersReducedMotion()) return;
+    const el = panelRef.current;
+    if (!el) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        el,
+        { autoAlpha: 0.92, scale: 0.97, y: 8 },
+        { autoAlpha: 1, scale: 1, y: 0, duration: 0.26, ease: 'power2.out' },
+      );
+    }, el);
+    return () => ctx.revert();
+  }, [open]);
 
   const onSubmit = form.handleSubmit((v) =>
     create.mutate(
@@ -95,10 +113,15 @@ export function CreateTaskDialog({
         onOpenChange(next);
       }}
     >
-      <DialogContent className="gap-0 p-0 sm:max-w-lg">
-        <DialogHeader className="space-y-1 border-b px-5 py-4">
-          <DialogTitle>New task</DialogTitle>
-          <DialogDescription>Numbered automatically in this project.</DialogDescription>
+      <DialogContent
+        ref={panelRef}
+        className="gap-0 border-[#DEE2E6] bg-white p-0 text-[#212529] shadow-[0_8px_28px_rgba(0,0,0,.12)] sm:max-w-lg"
+      >
+        <DialogHeader className="space-y-1 border-b border-[#DEE2E6] px-5 py-4">
+          <DialogTitle className="text-[#212529]">New task</DialogTitle>
+          <DialogDescription className="text-[#8F8F8F]">
+            Numbered automatically in this project.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="grid gap-4 px-5 py-4" noValidate>
           <div className="grid gap-1.5">
@@ -107,11 +130,12 @@ export function CreateTaskDialog({
               id="new-task-title"
               autoFocus
               placeholder="What needs to be done?"
+              className="border-[#DEE2E6]"
               aria-invalid={!!form.formState.errors.title}
               {...form.register('title')}
             />
             {form.formState.errors.title && (
-              <p role="alert" className="text-xs text-destructive">
+              <p role="alert" className="text-xs text-[#DC3545]">
                 {form.formState.errors.title.message}
               </p>
             )}
@@ -122,7 +146,7 @@ export function CreateTaskDialog({
               id="new-task-description"
               rows={3}
               placeholder="Optional details…"
-              className="resize-y"
+              className="resize-y border-[#DEE2E6]"
               {...form.register('description')}
             />
           </div>
@@ -134,7 +158,7 @@ export function CreateTaskDialog({
                 <div className="grid gap-1.5">
                   <Label>Status</Label>
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger aria-label="Status" className="w-full">
+                    <SelectTrigger aria-label="Status" className="w-full border-[#DEE2E6]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -155,7 +179,7 @@ export function CreateTaskDialog({
                 <div className="grid gap-1.5">
                   <Label>Priority</Label>
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger aria-label="Priority" className="w-full">
+                    <SelectTrigger aria-label="Priority" className="w-full border-[#DEE2E6]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -176,7 +200,7 @@ export function CreateTaskDialog({
                 <div className="grid gap-1.5">
                   <Label>Assignee</Label>
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger aria-label="Assignee" className="w-full">
+                    <SelectTrigger aria-label="Assignee" className="w-full border-[#DEE2E6]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -193,21 +217,35 @@ export function CreateTaskDialog({
             />
             <div className="grid gap-1.5">
               <Label htmlFor="new-task-due">Due date</Label>
-              <Input id="new-task-due" type="date" {...form.register('dueDate')} />
+              <Input
+                id="new-task-due"
+                type="date"
+                className="border-[#DEE2E6]"
+                {...form.register('dueDate')}
+              />
             </div>
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="new-task-labels">Labels</Label>
-            <Input id="new-task-labels" placeholder="bug, frontend" {...form.register('labels')} />
-            <p className="text-xs text-muted-foreground">
+            <Input
+              id="new-task-labels"
+              placeholder="bug, frontend"
+              className="border-[#DEE2E6]"
+              {...form.register('labels')}
+            />
+            <p className="text-xs text-[#8F8F8F]">
               Comma-separated. Colors are assigned automatically.
             </p>
           </div>
-          <DialogFooter className="-mx-5 -mb-4 border-t bg-muted/20 px-5 py-3 sm:justify-end">
+          <DialogFooter className="-mx-5 -mb-4 border-t border-[#DEE2E6] bg-[#F8F9FA] px-5 py-3 sm:justify-end">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={create.isPending}>
+            <Button
+              type="submit"
+              disabled={create.isPending}
+              className="bg-[#017E84] text-white hover:bg-[#016A6F]"
+            >
               {create.isPending ? 'Creating…' : 'Create task'}
             </Button>
           </DialogFooter>

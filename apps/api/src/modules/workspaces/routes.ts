@@ -407,7 +407,13 @@ const routes: FastifyPluginAsyncZod = async (app) => {
         params: workspaceParams,
         body: z.object({ email: emailSchema, role: invitableRole }),
         response: {
-          201: envelope(z.object({ invitation: invitationSchema, token: z.string() })),
+          201: envelope(
+            z.object({
+              invitation: invitationSchema,
+              token: z.string(),
+              emailDelivery: z.enum(['sent', 'skipped', 'failed']),
+            }),
+          ),
           ...errors,
         },
       },
@@ -438,6 +444,7 @@ const routes: FastifyPluginAsyncZod = async (app) => {
       }
 
       const token = randomToken();
+      const expiresAt = new Date(now.getTime() + INVITATION_TTL_MS);
       const { invitation, notifications } = await app.db.$transaction(async (tx) => {
         const row = await tx.invitation.create({
           data: {
@@ -446,7 +453,7 @@ const routes: FastifyPluginAsyncZod = async (app) => {
             role,
             tokenHash: sha256(token),
             invitedById: req.principal.userId,
-            expiresAt: new Date(now.getTime() + INVITATION_TTL_MS),
+            expiresAt,
           },
           include: invitationInclude,
         });
@@ -469,7 +476,20 @@ const routes: FastifyPluginAsyncZod = async (app) => {
       });
       publishNotifications(app.events, notifications);
 
-      return reply.code(201).send({ data: { invitation: toInvitation(invitation), token } });
+      // Token only in the accept URL for the mailer — never logged.
+      const acceptUrl = `${app.config.WEB_ORIGIN}/invitations/accept?token=${token}`;
+      const emailDelivery = await app.mailer.sendWorkspaceInvitation({
+        to: email,
+        workspaceName: invitation.workspace.name,
+        role,
+        invitedByName: invitation.invitedBy.name,
+        acceptUrl,
+        expiresAt,
+      });
+
+      return reply
+        .code(201)
+        .send({ data: { invitation: toInvitation(invitation), token, emailDelivery } });
     },
   );
 
@@ -596,6 +616,7 @@ const routes: FastifyPluginAsyncZod = async (app) => {
       return { data: toInvitation(updated) };
     },
   );
+
 };
 
 export default routes;

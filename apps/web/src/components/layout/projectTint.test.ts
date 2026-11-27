@@ -12,9 +12,11 @@ describe('projectTint', () => {
     expect(unique.size).toBeGreaterThan(1);
   });
 
-  it('stays in the signal/ink token family', () => {
+  it('stays in the Milk Desk token family', () => {
     for (const id of ['WEB', 'API', 'MOB', 'INF', 'DSG', 'QA']) {
-      expect(projectTint(id)).toMatch(/^(bg-primary|bg-cyan|bg-foreground|bg-muted-foreground|bg-accent-foreground)/);
+      expect(projectTint(id)).toMatch(
+        /^(bg-primary|bg-info|bg-success|bg-warning|bg-muted-foreground)/,
+      );
     }
   });
 });

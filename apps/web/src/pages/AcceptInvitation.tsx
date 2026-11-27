@@ -48,7 +48,11 @@ export function AcceptInvitationPage() {
         title="Invitation link incomplete"
         description="This link is missing its invitation token. Open the link again from your email or ask for a new invitation."
       >
-        <Button asChild variant="outline" className="min-h-11 w-full">
+        <Button
+          asChild
+          variant="outline"
+          className="min-h-10 w-full border-[#DEE2E6] bg-[#E9ECEF] text-[#212529] hover:bg-[#DEE2E6] sm:min-h-9"
+        >
           <Link to="/app">Back to workspaces</Link>
         </Button>
       </AuthShell>
@@ -61,7 +65,11 @@ export function AcceptInvitationPage() {
         title="Invitation not accepted"
         description={errorMessage(phase.error, 'This invitation could not be accepted.')}
       >
-        <Button asChild variant="outline" className="min-h-11 w-full">
+        <Button
+          asChild
+          variant="outline"
+          className="min-h-10 w-full border-[#DEE2E6] bg-[#E9ECEF] text-[#212529] hover:bg-[#DEE2E6] sm:min-h-9"
+        >
           <Link to="/app">Back to workspaces</Link>
         </Button>
       </AuthShell>
@@ -71,7 +79,7 @@ export function AcceptInvitationPage() {
   if (phase.kind === 'success') {
     return (
       <AuthShell title="You're in" description="Opening your workspace…">
-        <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+        <p role="status" aria-live="polite" className="text-sm text-[#6C757D]">
           Redirecting…
         </p>
       </AuthShell>
@@ -83,12 +91,7 @@ export function AcceptInvitationPage() {
       title="Accepting invitation"
       description="Joining the workspace from your invite link."
     >
-      <p
-        role="status"
-        aria-live="polite"
-        aria-busy="true"
-        className="text-sm text-muted-foreground"
-      >
+      <p role="status" aria-live="polite" aria-busy="true" className="text-sm text-[#6C757D]">
         Joining workspace…
       </p>
     </AuthShell>

@@ -3,26 +3,31 @@ import { ErrorState } from '@/components/states';
 import { Skeleton } from '@/components/ui/skeleton';
 import { humanize } from '@/lib/format';
 import type { Project } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { STATUS_CHIP } from '@/features/tasks/milk';
 import { percent, ProgressBar } from './ProgressBar';
 import { useProjectTasks } from './queries';
 
-/** Totals from project; per-status counts from the real task list (R-17). Flat band. */
+/** Milk Desk progress band with status chips. */
 export function ProjectProgress({ project }: { project: Project }) {
   const tasks = useProjectTasks(project.id);
   const { total, done } = project.taskCounts;
 
   return (
-    <section aria-labelledby="progress-heading" className="space-y-3 border-y border-border py-4">
+    <section
+      aria-labelledby="progress-heading"
+      className="space-y-2.5 border-y border-[#DEE2E6] bg-white py-3.5"
+    >
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 id="progress-heading" className="text-sm font-semibold tracking-tight">
+          <h2 id="progress-heading" className="text-sm font-semibold text-[#212529]">
             Progress
           </h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <p className="mt-0.5 text-[14px] text-[#8F8F8F]">
             {done} of {total} tasks done
           </p>
         </div>
-        <span className="text-xl font-semibold tabular-nums tracking-tight text-primary">
+        <span className="text-lg font-semibold tabular-nums tracking-tight text-[#017E84]">
           {percent(done, total)}%
         </span>
       </div>
@@ -30,14 +35,14 @@ export function ProjectProgress({ project }: { project: Project }) {
 
       {tasks.isPending && (
         <dl
-          className="flex flex-col border-t border-border pt-3 sm:flex-row sm:divide-x sm:divide-border"
+          className="flex flex-col border-t border-[#DEE2E6] pt-3 sm:flex-row sm:divide-x sm:divide-[#DEE2E6]"
           aria-busy="true"
           aria-label="Loading status counts"
         >
           {TASK_STATUSES.map((status) => (
             <div
               key={status}
-              className="flex flex-1 items-baseline justify-between gap-2 border-b border-border py-1.5 last:border-b-0 sm:flex-col sm:gap-0.5 sm:border-b-0 sm:px-3 sm:py-0 first:sm:pl-0 last:sm:pr-0"
+              className="flex flex-1 items-baseline justify-between gap-2 border-b border-[#DEE2E6] py-1.5 last:border-b-0 sm:flex-col sm:gap-0.5 sm:border-b-0 sm:px-3 sm:py-0 first:sm:pl-0 last:sm:pr-0"
             >
               <Skeleton className="h-3 w-14" />
               <Skeleton className="h-5 w-6" />
@@ -47,14 +52,23 @@ export function ProjectProgress({ project }: { project: Project }) {
       )}
       {tasks.isError && <ErrorState error={tasks.error} onRetry={() => void tasks.refetch()} />}
       {tasks.data && (
-        <dl className="flex flex-col border-t border-border pt-3 sm:flex-row sm:divide-x sm:divide-border">
+        <dl className="flex flex-col border-t border-[#DEE2E6] pt-3 sm:flex-row sm:divide-x sm:divide-[#DEE2E6]">
           {TASK_STATUSES.map((status) => (
             <div
               key={status}
-              className="flex flex-1 items-baseline justify-between gap-2 border-b border-border py-1.5 last:border-b-0 sm:flex-col sm:gap-0.5 sm:border-b-0 sm:px-3 sm:py-0 first:sm:pl-0 last:sm:pr-0"
+              className="flex flex-1 items-baseline justify-between gap-2 border-b border-[#DEE2E6] py-1.5 last:border-b-0 sm:flex-col sm:gap-1 sm:border-b-0 sm:px-3 sm:py-0 first:sm:pl-0 last:sm:pr-0"
             >
-              <dt className="text-[11px] text-muted-foreground">{humanize(status)}</dt>
-              <dd className="text-base font-semibold tabular-nums">
+              <dt>
+                <span
+                  className={cn(
+                    'rounded-full px-2 py-0.5 text-[11px] font-medium',
+                    STATUS_CHIP[status],
+                  )}
+                >
+                  {humanize(status)}
+                </span>
+              </dt>
+              <dd className="text-base font-semibold tabular-nums text-[#212529]">
                 {tasks.data.filter((t) => t.status === status).length}
               </dd>
             </div>

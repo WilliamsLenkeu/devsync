@@ -1,7 +1,7 @@
 import { Archive, ArrowLeft, KanbanSquare, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { EmptyState, ErrorState, PageHeader } from '@/components/states';
+import { EmptyState, ErrorState } from '@/components/states';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BoardToolbar } from '@/features/tasks/BoardToolbar';
@@ -18,6 +18,7 @@ import { useProject, useProjectMembers, useProjectTasks } from '@/features/tasks
 import { useMoveTask } from '@/features/tasks/taskMutations';
 import { useWorkspace } from '@/lib/workspace';
 
+/** Milk Desk board — control panel + light kanban. */
 export function ProjectBoardPage() {
   const { projectId = '' } = useParams();
   const { workspace, can } = useWorkspace();
@@ -45,74 +46,83 @@ export function ProjectBoardPage() {
 
   if (project.isError) {
     return (
-      <div className="p-6">
+      <div className="bg-[#F8F9FA] p-6">
         <ErrorState error={project.error} onRetry={() => void project.refetch()} />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-6">
-      <PageHeader
-        title={project.data?.name ?? 'Board'}
-        description={
-          project.data && (
-            <>
-              <span className="font-mono text-foreground/80">{project.data.identifier}</span>
-              <span className="text-muted-foreground"> · Board</span>
-            </>
-          )
-        }
-        actions={
-          <>
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#F8F9FA]">
+      {/* Control panel */}
+      <div className="shrink-0 border-b border-[#DEE2E6] bg-white px-4 pt-3 sm:px-5">
+        <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
             <Link
               to={`/w/${workspace.id}/projects/${projectId}`}
-              className={buttonVariants({ variant: 'outline', size: 'sm' })}
+              className={buttonVariants({
+                variant: 'ghost',
+                size: 'sm',
+                className: '-ml-2 h-8 text-[#8F8F8F] hover:text-[#212529]',
+              })}
             >
               <ArrowLeft aria-hidden />
               Overview
             </Link>
-            {canWrite && (
-              <Button size="sm" onClick={() => setCreating(true)}>
-                <Plus aria-hidden />
-                New task
-              </Button>
+            <h1 className="truncate text-lg font-semibold text-[#212529]">
+              {project.data?.name ?? 'Board'}
+            </h1>
+            {project.data && (
+              <p className="mt-0.5 text-sm text-[#8F8F8F]">
+                <span className="font-mono text-[#017E84]">{project.data.identifier}</span>
+                {' · '}Board
+              </p>
             )}
-          </>
-        }
-      />
-
-      {archived && (
-        <div
-          role="status"
-          className="mb-4 flex items-start gap-2.5 rounded-md border border-border bg-muted/40 px-3 py-2.5 text-sm"
-        >
-          <Archive className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
-          <div>
-            <p className="font-medium">Project archived</p>
-            <p className="text-muted-foreground">
-              The board is read-only. Restore the project to edit tasks again.
-            </p>
           </div>
         </div>
-      )}
 
-      <div className="mb-3 shrink-0">
+        {archived && (
+          <div
+            role="status"
+            className="mb-2 flex items-start gap-2.5 rounded-lg border border-[#DEE2E6] bg-[#FFF3CD] px-3 py-2 text-sm text-[#856404]"
+          >
+            <Archive className="mt-0.5 size-4 shrink-0" aria-hidden />
+            <div>
+              <p className="font-medium">Project archived</p>
+              <p className="text-[13px]">
+                The board is read-only. Restore the project to edit tasks again.
+              </p>
+            </div>
+          </div>
+        )}
+
         <BoardToolbar
           filters={filters}
           members={members.data ?? []}
           onChange={updateFilters}
           onClear={clearFilters}
+          primaryAction={
+            canWrite ? (
+              <Button
+                size="sm"
+                className="h-9 bg-[#017E84] text-white hover:bg-[#016A6F]"
+                onClick={() => setCreating(true)}
+              >
+                <Plus aria-hidden />
+                New task
+              </Button>
+            ) : undefined
+          }
         />
         {!manual && (
-          <p className="mt-1.5 text-xs text-muted-foreground">
+          <p className="pb-2 text-[12px] text-[#8F8F8F]">
             Column reordering is off while filters or a custom sort are active. Cross-column moves
             still work.
           </p>
         )}
       </div>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 sm:p-4">
         {tasks.data ? (
           tasks.data.length === 0 && !hasActiveFilters(filters) ? (
             <EmptyState
@@ -121,7 +131,11 @@ export function ProjectBoardPage() {
               description="Create the first task to start the board."
               action={
                 canWrite && (
-                  <Button size="sm" onClick={() => setCreating(true)}>
+                  <Button
+                    size="sm"
+                    className="bg-[#017E84] text-white hover:bg-[#016A6F]"
+                    onClick={() => setCreating(true)}
+                  >
                     <Plus aria-hidden />
                     New task
                   </Button>
@@ -168,19 +182,16 @@ export function ProjectBoardPage() {
 
 function BoardSkeleton() {
   return (
-    <div
-      className="flex min-h-0 gap-2 overflow-hidden"
-      aria-busy="true"
-      aria-label="Loading board"
-    >
+    <div className="flex min-h-0 gap-3 overflow-hidden" aria-busy="true" aria-label="Loading board">
       {Array.from({ length: 5 }, (_, i) => (
-        <div key={i} className="w-[16.5rem] shrink-0 space-y-2 sm:w-72">
-          <Skeleton className="h-4 w-20" />
-          <div className="space-y-1 rounded-md bg-muted/40 p-1">
-            <Skeleton className="h-16 w-full rounded-md" />
-            <Skeleton className="h-16 w-full rounded-md" />
-            <Skeleton className="h-14 w-full rounded-md" />
-          </div>
+        <div
+          key={i}
+          className="w-[17rem] shrink-0 space-y-2 rounded-lg border border-[#DEE2E6] bg-[#F8F9FA] p-2 sm:w-72"
+        >
+          <Skeleton className="h-8 w-full rounded-md bg-white" />
+          <Skeleton className="h-20 w-full rounded-lg bg-white" />
+          <Skeleton className="h-20 w-full rounded-lg bg-white" />
+          <Skeleton className="h-16 w-full rounded-lg bg-white" />
         </div>
       ))}
       <p className="sr-only">Loading board…</p>

@@ -41,20 +41,21 @@ export function PendingInvitations({ workspaceId }: { workspaceId: string }) {
   });
 
   return (
-    <section aria-labelledby="pending-invitations" className="space-y-3">
-      <div>
-        <h2 id="pending-invitations" className="text-sm font-medium">
+    <section
+      aria-labelledby="pending-invitations"
+      className="rounded-lg border border-[#DEE2E6] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+    >
+      <div className="border-b border-[#DEE2E6] px-4 py-3">
+        <h2 id="pending-invitations" className="text-sm font-semibold text-[#212529]">
           Pending invitations
         </h2>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          Open invites waiting to be accepted.
-        </p>
+        <p className="mt-0.5 text-sm text-[#6C757D]">Open invites waiting to be accepted.</p>
       </div>
 
       {invitations.isPending && (
-        <div className="divide-y border-y" aria-busy="true" aria-label="Loading invitations">
+        <div className="divide-y divide-[#DEE2E6]" aria-busy="true" aria-label="Loading invitations">
           {Array.from({ length: 2 }, (_, i) => (
-            <div key={i} className="flex items-center gap-3 py-2.5">
+            <div key={i} className="flex items-center gap-3 px-4 py-3">
               <Skeleton className="h-4 flex-1" />
               <Skeleton className="h-5 w-16" />
             </div>
@@ -62,23 +63,34 @@ export function PendingInvitations({ workspaceId }: { workspaceId: string }) {
         </div>
       )}
       {invitations.isError && (
-        <ErrorState error={invitations.error} onRetry={() => void invitations.refetch()} />
+        <div className="p-4">
+          <ErrorState error={invitations.error} onRetry={() => void invitations.refetch()} />
+        </div>
       )}
       {invitations.isSuccess && invitations.data.length === 0 && (
-        <p className="text-sm text-muted-foreground">None right now.</p>
+        <p className="px-4 py-4 text-sm text-[#6C757D]">None right now — invite someone above.</p>
       )}
 
       {invitations.isSuccess && invitations.data.length > 0 && (
-        <ul className="divide-y border-y">
+        <ul className="divide-y divide-[#DEE2E6]">
           {invitations.data.map((inv) => (
-            <li key={inv.id} className="flex items-center gap-3 py-2.5">
+            <li
+              key={inv.id}
+              data-stagger-item
+              className="flex items-center gap-3 px-4 py-3 hover:bg-[#F8F9FA]"
+            >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{inv.email}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="truncate text-sm font-medium text-[#212529]">{inv.email}</p>
+                <p className="text-xs text-[#6C757D]">
                   Invited by {inv.invitedBy.name} · expires {formatDate(inv.expiresAt)}
                 </p>
               </div>
-              <Badge variant="outline">{ROLE_LABEL[inv.role]}</Badge>
+              <Badge
+                variant="outline"
+                className="border-transparent bg-[#E9ECEF] font-normal text-[#495057]"
+              >
+                {ROLE_LABEL[inv.role]}
+              </Badge>
               <Button
                 variant="ghost"
                 size="icon-sm"

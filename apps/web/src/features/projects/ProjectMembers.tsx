@@ -68,26 +68,28 @@ export function ProjectMembers({
 
   return (
     <section aria-labelledby="members-heading" className="h-fit">
-      <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2">
-        <h2 id="members-heading" className="text-sm font-semibold tracking-tight">
+      <div className="flex items-baseline justify-between gap-3 border-b border-[#DEE2E6] pb-2">
+        <h2 id="members-heading" className="text-sm font-semibold text-[#212529]">
           Members
         </h2>
         {members.data && (
-          <span className="text-xs tabular-nums text-muted-foreground">{members.data.length}</span>
+          <span className="text-xs tabular-nums text-[#8F8F8F]">{members.data.length}</span>
         )}
       </div>
 
       <div className="pt-2.5">
         {canManage && (
           <div className="mb-4 grid gap-2">
-            <Label htmlFor="add-member">Add a workspace member</Label>
+            <Label htmlFor="add-member" className="text-[#495057]">
+              Add a workspace member
+            </Label>
             <div className="flex gap-2">
               <Select
                 value={selectedUserId}
                 onValueChange={setSelectedUserId}
                 disabled={addable.length === 0}
               >
-                <SelectTrigger id="add-member" className="min-w-0 flex-1">
+                <SelectTrigger id="add-member" className="min-w-0 flex-1 border-[#DEE2E6]">
                   <SelectValue
                     placeholder={
                       addable.length === 0 ? 'Everyone is in this project' : 'Select a member'
@@ -106,6 +108,7 @@ export function ProjectMembers({
                 onClick={onAdd}
                 disabled={!selectedUserId || add.isPending}
                 aria-label="Add selected member"
+                className="bg-[#017E84] text-white hover:bg-[#016A6F]"
               >
                 <UserPlus aria-hidden />
                 Add
@@ -115,7 +118,7 @@ export function ProjectMembers({
         )}
 
         {members.isPending && (
-          <div className="divide-y" aria-busy="true">
+          <div className="divide-y divide-[#DEE2E6]" aria-busy="true">
             {[0, 1, 2].map((i) => (
               <div key={i} className="flex items-center gap-3 py-2.5">
                 <Skeleton className="size-8 rounded-full" />
@@ -131,19 +134,19 @@ export function ProjectMembers({
           <ErrorState error={members.error} onRetry={() => void members.refetch()} />
         )}
         {members.data && members.data.length === 0 && (
-          <p className="py-6 text-sm text-muted-foreground">No members yet.</p>
+          <p className="py-6 text-sm text-[#8F8F8F]">No members yet.</p>
         )}
         {members.data && members.data.length > 0 && (
-          <ul className="divide-y">
+          <ul className="divide-y divide-[#DEE2E6]">
             {members.data.map((m) => (
-              <li key={m.userId} className="flex items-center gap-3 py-2.5">
+              <li key={m.userId} className="flex items-center gap-3 py-2.5 hover:bg-[#F8F9FA]">
                 <UserAvatar
                   user={{ name: m.user.name, avatarUrl: m.user.avatarUrl }}
                   className="size-8"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{m.user.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{m.user.email}</p>
+                  <p className="truncate text-sm font-medium text-[#212529]">{m.user.name}</p>
+                  <p className="truncate text-xs text-[#8F8F8F]">{m.user.email}</p>
                 </div>
                 {canManage && (
                   <Button

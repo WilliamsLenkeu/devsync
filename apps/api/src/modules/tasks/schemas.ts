@@ -43,6 +43,18 @@ export const commentSchema = z.object({
 });
 export type Comment = z.infer<typeof commentSchema>;
 
+export const attachmentSchema = z.object({
+  id: uuid,
+  taskId: uuid,
+  commentId: uuid.nullable(),
+  filename: z.string(),
+  contentType: z.string(),
+  byteSize: z.number().int(),
+  uploadedBy: userRefSchema,
+  createdAt: dateTime,
+});
+export type Attachment = z.infer<typeof attachmentSchema>;
+
 export const activitySchema = z.object({
   id: uuid,
   type: z.string(),

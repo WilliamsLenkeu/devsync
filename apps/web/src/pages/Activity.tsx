@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { History } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ActivityItem } from '@/features/activity/ActivityItem';
 import { useDocumentTitle } from '@/components/layout/useDocumentTitle';
 import { EmptyState, ErrorState, PageHeader } from '@/components/states';
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/api';
+import { usePageEnter, useStaggerEnter } from '@/lib/motion';
 import { qk } from '@/lib/queryKeys';
 import { useWorkspace } from '@/lib/workspace';
 import type { Activity, Project } from '@/lib/types';
@@ -21,9 +22,8 @@ import type { Activity, Project } from '@/lib/types';
 const ALL = 'all';
 
 /**
- * Design Read: workspace change feed, signal-console,
- * dial ENERGY 2 / RHYTHM 2 / MOTION 1.
- * Job: scan recent events, filter by project. Flat dense rows.
+ * Design Read: Milk Desk activity feed — control panel + dense list,
+ * ENERGY 2 / RHYTHM 3 / MOTION 2.
  */
 export function ActivityPage() {
   useDocumentTitle('Activity');
@@ -31,6 +31,7 @@ export function ActivityPage() {
   const wid = workspace.id;
   const [filter, setFilter] = useState(ALL);
   const projectId = filter === ALL ? undefined : filter;
+  const rootRef = useRef<HTMLDivElement>(null);
 
   const projects = useQuery({
     queryKey: qk.projects(wid),
@@ -50,14 +51,20 @@ export function ActivityPage() {
 
   const items = feed.data?.pages.flatMap((p) => p.data) ?? [];
 
+  usePageEnter(rootRef, [filter, feed.isSuccess]);
+  useStaggerEnter(rootRef, '[data-stagger-item]', [filter, items.length, feed.dataUpdatedAt]);
+
   return (
-    <div className="mx-auto max-w-3xl p-4 sm:p-6 lg:p-8">
+    <div ref={rootRef} className="mx-auto max-w-3xl p-4 sm:p-6 lg:p-8">
       <PageHeader
         title="Activity"
         description="Recent changes across projects, tasks, and members."
         actions={
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-48" aria-label="Filter by project">
+            <SelectTrigger
+              className="w-48 border-[#DEE2E6] bg-white"
+              aria-label="Filter by project"
+            >
               <SelectValue placeholder="All projects" />
             </SelectTrigger>
             <SelectContent>
@@ -73,9 +80,13 @@ export function ActivityPage() {
       />
 
       {feed.isPending && (
-        <ul className="divide-y border-y" aria-busy="true" aria-label="Loading activity">
+        <ul
+          className="overflow-hidden rounded-lg border border-[#DEE2E6] bg-white divide-y divide-[#DEE2E6]"
+          aria-busy="true"
+          aria-label="Loading activity"
+        >
           {Array.from({ length: 6 }, (_, i) => (
-            <li key={i} className="flex items-center gap-3 py-2.5">
+            <li key={i} className="flex items-center gap-3 px-4 py-2.5">
               <Skeleton className="size-7 rounded-full" />
               <Skeleton className="h-4 flex-1" />
             </li>
@@ -99,9 +110,11 @@ export function ActivityPage() {
 
       {items.length > 0 && (
         <div className="grid gap-4">
-          <ul className="divide-y border-y">
+          <ul className="overflow-hidden rounded-lg border border-[#DEE2E6] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] divide-y divide-[#DEE2E6]">
             {items.map((a) => (
-              <ActivityItem key={a.id} activity={a} />
+              <li key={a.id} data-stagger-item className="px-2 hover:bg-[#F8F9FA]">
+                <ActivityItem activity={a} />
+              </li>
             ))}
           </ul>
           {feed.hasNextPage && (
@@ -109,6 +122,7 @@ export function ActivityPage() {
               <Button
                 variant="outline"
                 size="sm"
+                className="border-[#DEE2E6] bg-[#E9ECEF] text-[#212529] hover:bg-[#DEE2E6]"
                 onClick={() => void feed.fetchNextPage()}
                 disabled={feed.isFetchingNextPage}
               >

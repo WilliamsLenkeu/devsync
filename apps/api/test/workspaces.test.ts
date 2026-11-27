@@ -232,8 +232,13 @@ describe('invitations', () => {
 
     const res = await invite(owner, ws.id, invitee.email, 'VIEWER');
     expect(res.statusCode).toBe(201);
-    const { invitation, token } = body<{ invitation: { id: string }; token: string }>(res);
+    const { invitation, token, emailDelivery } = body<{
+      invitation: { id: string };
+      token: string;
+      emailDelivery: string;
+    }>(res);
     expect(invitation).toMatchObject({ status: 'PENDING', role: 'VIEWER', email: invitee.email });
+    expect(emailDelivery).toBe('skipped'); // NODE_ENV=test → no Resend network
 
     const row = await app.db.invitation.findUniqueOrThrow({ where: { id: invitation.id } });
     expect(row.tokenHash).toMatch(/^[0-9a-f]{64}$/);

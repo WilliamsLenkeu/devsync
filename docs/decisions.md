@@ -57,3 +57,30 @@ Une seule `tsconfig.base.json` + `eslint.config.js` à la racine suffisent. Un p
 - **v3** (recherche Linear/Plane density + landing scroll demos 2025/26) : dark dense hairlines, accent cuivre, Bricolage Grotesque, landing = **reel pin/scrub GSAP** avec screenshots réels (`/screenshots`).
 - App ENERGY 2 ; landing ENERGY/MOTION 3. MCP secondaire.
 
+## D10 — Orchestration multi-agents Concord + scope invitations (2026-11-27)
+
+- Coordination inter-agents via `@concord-ai/concord-mcp` (local `.concord/`), pas via chats isolés.
+- Les invitations workspace (CRUD, token, accept/decline/revoke, UI) sont déjà livrées ; le gap roadmap est l’**envoi email**. Première mission collaborative = delivery mail, pas une réécriture des invitations.
+- Détail opératoire : `docs/multi-agent/`.
+
+## D11 — Invitation email via Resend (2026-11-27)
+
+- `apps/api/src/lib/mail.ts` : Mailer mince + SDK `resend`. `RESEND_API_KEY` optionnel ; `MAIL_FROM` défaut `DevSync <onboarding@resend.dev>`.
+- `POST …/invitations` renvoie `emailDelivery: sent|skipped|failed` ; token toujours renvoyé une fois (fallback UI). En `NODE_ENV=test` → toujours `skipped`.
+- Le token n’est jamais loggé ; seuls des warn sans URL/token en cas d’échec Resend.
+- Pas d’endpoint « resend email » : le token en clair n’est plus disponible après création (seul le hash est stocké).
+
+## D12 — Realtime multi-nœud via Redis pub/sub (2026-11-27)
+
+- `EventBus` : `LocalEventBus` (défaut) ou `RedisEventBus` si `REDIS_URL` est défini (canal `devsync:events`).
+- Chaque nœud publie ses events avec `origin` ; les messages locaux ne sont pas rejoués (évite les boucles).
+- Présence WebSocket reste **in-process par nœud** (pas partagée Redis) — documenté ; suffisant pour fan-out des événements métier.
+- Compose : service `redis` sous profile `realtime` (optionnel).
+
+## D13 — Pièces jointes tâches (2026-11-27)
+
+- Modèle `TaskAttachment` (optionnellement lié à un `TaskComment`) ; blobs sur disque sous `ATTACHMENTS_DIR` (défaut `.data/attachments`).
+- Limite `ATTACHMENTS_MAX_BYTES` (défaut 10 MiB) ; allowlist MIME (png/jpeg/webp/gif/pdf/text/markdown).
+- Upload multipart `POST /api/tasks/:taskId/attachments` (champ `file`) ; events `attachment.created|deleted`.
+- Pas de stockage objet cloud dans cette itération (local disk ; swap S3 derrière la même clé `storageKey` plus tard).
+

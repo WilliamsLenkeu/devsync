@@ -25,16 +25,19 @@ export function ThemeToggle() {
         <Button
           variant="ghost"
           size="icon"
-          className="size-11 transition-colors duration-150 md:size-8"
+          className="size-10 md:size-9"
           aria-label={`Theme: ${theme}. Change theme`}
         >
           <Icon aria-hidden />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent
+        align="end"
+        className="rounded-md border-border shadow-[var(--elevation-2)]"
+      >
         <DropdownMenuRadioGroup value={theme} onValueChange={(v) => setTheme(v as Theme)}>
           {THEME_OPTIONS.map((o) => (
-            <DropdownMenuRadioItem key={o.value} value={o.value}>
+            <DropdownMenuRadioItem key={o.value} value={o.value} className="text-sm">
               <o.icon aria-hidden />
               {o.label}
             </DropdownMenuRadioItem>

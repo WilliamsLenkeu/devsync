@@ -1,22 +1,44 @@
+import gsap from 'gsap';
+import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { ErrorState } from '@/components/states';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ProjectActivity } from '@/features/projects/ProjectActivity';
 import { ProjectHeader } from '@/features/projects/ProjectHeader';
+import { ProjectKpis } from '@/features/projects/ProjectKpis';
 import { ProjectMembers } from '@/features/projects/ProjectMembers';
-import { ProjectProgress } from '@/features/projects/ProjectProgress';
-import { useProject } from '@/features/projects/queries';
+import { ProjectRecentTasks } from '@/features/projects/ProjectRecentTasks';
+import { ProjectWorkload } from '@/features/projects/ProjectWorkload';
+import { useProject, useProjectTasks } from '@/features/projects/queries';
+import { prefersReducedMotion } from '@/features/tasks/milk';
 import { useWorkspace } from '@/lib/workspace';
 
 /**
- * Design Read: project hub before the board, dial ENERGY 2 / RHYTHM 2 / MOTION 1.
- * Job: open the board or check progress. Bands: header → progress → activity | members.
+ * Vue project repensée (Milk Desk / Odoo) :
+ * control panel → KPIs → work (tasks + workload) | team + activity.
  */
 export function ProjectOverviewPage() {
   const { projectId = '' } = useParams();
   const { workspace, can } = useWorkspace();
   const project = useProject(projectId);
+  const tasks = useProjectTasks(projectId);
   const canManage = can('project:update');
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!project.data || prefersReducedMotion()) return;
+    const root = rootRef.current;
+    if (!root) return;
+    const blocks = root.querySelectorAll('[data-milk-band]');
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        blocks,
+        { autoAlpha: 0, y: 6 },
+        { autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.04, ease: 'power2.out' },
+      );
+    }, root);
+    return () => ctx.revert();
+  }, [project.data?.id]);
 
   if (project.isPending) {
     return <OverviewSkeleton />;
@@ -25,18 +47,94 @@ export function ProjectOverviewPage() {
     return <ErrorState error={project.error} onRetry={() => void project.refetch()} />;
 
   const p = project.data;
+
   return (
-    <div className="space-y-6">
-      <ProjectHeader project={p} canManage={canManage} />
-      <ProjectProgress project={p} />
-      <div className="grid gap-7 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.85fr)] lg:gap-8">
-        <section aria-labelledby="activity-heading" className="min-w-0 space-y-2">
-          <h2 id="activity-heading" className="border-b border-border pb-2 text-sm font-semibold tracking-tight">
-            Activity
-          </h2>
-          <ProjectActivity projectId={p.id} />
-        </section>
-        <ProjectMembers projectId={p.id} workspaceId={workspace.id} canManage={canManage} />
+    <div ref={rootRef} className="flex min-h-full flex-col bg-[#F8F9FA]">
+      <div data-milk-band>
+        <ProjectHeader project={p} canManage={canManage} />
+      </div>
+
+      <div className="flex flex-1 flex-col gap-5 px-4 py-5 md:px-6">
+        <div data-milk-band>
+          <ProjectKpis project={p} tasks={tasks.data} />
+        </div>
+
+        <div
+          data-milk-band
+          className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(18rem,0.85fr)]"
+        >
+          <div className="grid gap-5">
+            <section
+              aria-labelledby="about-heading"
+              className="rounded-lg border border-[#DEE2E6] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,.04)]"
+            >
+              <h2
+                id="about-heading"
+                className="border-b border-[#DEE2E6] pb-2 text-sm font-semibold text-[#212529]"
+              >
+                About
+              </h2>
+              {p.description ? (
+                <p className="mt-3 text-[14px] leading-relaxed text-[#212529] text-pretty">
+                  {p.description}
+                </p>
+              ) : (
+                <p className="mt-3 text-[14px] text-[#8F8F8F]">
+                  No description yet
+                  {canManage ? ' — use Edit to add one.' : '.'}
+                </p>
+              )}
+            </section>
+
+            <section
+              aria-labelledby="tasks-heading"
+              className="rounded-lg border border-[#DEE2E6] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,.04)]"
+            >
+              <div className="mb-3 flex items-end justify-between gap-2 border-b border-[#DEE2E6] pb-2">
+                <h2 id="tasks-heading" className="text-sm font-semibold text-[#212529]">
+                  Recent tasks
+                </h2>
+                <p className="text-[12px] text-[#8F8F8F]">Last updated first</p>
+              </div>
+              <ProjectRecentTasks projectId={p.id} workspaceId={workspace.id} />
+            </section>
+
+            <section
+              aria-labelledby="workload-heading"
+              className="rounded-lg border border-[#DEE2E6] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,.04)]"
+            >
+              <h2
+                id="workload-heading"
+                className="mb-3 border-b border-[#DEE2E6] pb-2 text-sm font-semibold text-[#212529]"
+              >
+                Workload by status
+              </h2>
+              <ProjectWorkload projectId={p.id} />
+            </section>
+          </div>
+
+          <aside className="grid gap-5 content-start">
+            <section className="rounded-lg border border-[#DEE2E6] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,.04)]">
+              <ProjectMembers
+                projectId={p.id}
+                workspaceId={workspace.id}
+                canManage={canManage}
+              />
+            </section>
+            <section
+              aria-labelledby="activity-heading"
+              className="rounded-lg border border-[#DEE2E6] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,.04)]"
+            >
+              <h2
+                id="activity-heading"
+                className="mb-2 border-b border-[#DEE2E6] pb-2 text-sm font-semibold text-[#212529]"
+              >
+                Activity
+              </h2>
+              <ProjectActivity projectId={p.id} />
+            </section>
+          </aside>
+        </div>
       </div>
     </div>
   );
@@ -44,58 +142,15 @@ export function ProjectOverviewPage() {
 
 function OverviewSkeleton() {
   return (
-    <div className="space-y-6" aria-busy="true" aria-label="Loading project">
-      <div className="space-y-2.5 border-b border-border pb-5">
+    <div className="bg-[#F8F9FA]" aria-busy="true" aria-label="Loading project">
+      <div className="border-b border-[#DEE2E6] bg-white px-4 py-3 md:px-6">
         <Skeleton className="h-4 w-20" />
-        <div className="flex gap-2">
-          <Skeleton className="h-5 w-12" />
-          <Skeleton className="h-5 w-14" />
-        </div>
-        <Skeleton className="h-7 w-48" />
-        <Skeleton className="h-4 w-72 max-w-full" />
-        <div className="flex gap-2 pt-1">
-          <Skeleton className="h-9 w-28" />
-          <Skeleton className="h-9 w-16" />
-        </div>
+        <Skeleton className="mt-2 h-7 w-48" />
       </div>
-      <div className="space-y-3 border-y border-border py-4">
-        <div className="flex justify-between">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-6 w-10" />
-        </div>
-        <Skeleton className="h-2.5 w-full" />
-        <div className="flex flex-col border-t border-border pt-3 sm:flex-row sm:divide-x">
-          {[0, 1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex flex-1 justify-between gap-2 py-1.5 sm:flex-col sm:px-3">
-              <Skeleton className="h-3 w-14" />
-              <Skeleton className="h-5 w-6" />
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="grid gap-7 lg:grid-cols-2">
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-16" />
-          <div className="divide-y border-t border-border">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="flex items-center gap-3 py-2.5">
-                <Skeleton className="size-7 rounded-full" />
-                <Skeleton className="h-4 flex-1" />
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-20" />
-          <div className="divide-y border-t border-border pt-1">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="flex items-center gap-3 py-2">
-                <Skeleton className="size-8 rounded-full" />
-                <Skeleton className="h-4 flex-1" />
-              </div>
-            ))}
-          </div>
-        </div>
+      <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4 md:px-6">
+        {[0, 1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-24 rounded-lg" />
+        ))}
       </div>
     </div>
   );

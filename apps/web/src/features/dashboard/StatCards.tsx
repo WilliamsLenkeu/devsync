@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import type { Dashboard } from '@/lib/types';
 
-/** Flat totals strip from real dashboard aggregates (R-17). Not a card grid. */
+/** Milk Desk totals — soft Material cards in a dense strip. */
 export function StatCards({ totals }: { totals: Dashboard['totals'] }) {
   const stats = [
     { label: 'Total tasks', value: totals.total },
@@ -11,21 +11,20 @@ export function StatCards({ totals }: { totals: Dashboard['totals'] }) {
   ];
 
   return (
-    <dl className="flex flex-col border-y border-border sm:flex-row sm:divide-x sm:divide-border">
+    <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {stats.map((s) => (
         <div
           key={s.label}
-          className="flex flex-1 items-baseline justify-between gap-3 border-b border-border px-0 py-2.5 last:border-b-0 sm:flex-col sm:justify-start sm:gap-1 sm:border-b-0 sm:px-5 sm:py-3.5 first:sm:pl-0 last:sm:pr-0"
+          data-stagger-item
+          className="rounded-lg border border-[#DEE2E6] bg-white px-3.5 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
         >
-          <dt className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-            {s.label}
-          </dt>
+          <dt className="text-xs font-medium text-[#6C757D]">{s.label}</dt>
           <dd
             className={cn(
-              'text-2xl font-semibold tracking-tight tabular-nums sm:text-[1.75rem]',
-              s.alert && 'text-destructive',
-              s.signal && !s.alert && 'text-primary',
-              !s.alert && !s.signal && 'text-foreground',
+              'mt-1 text-2xl font-semibold tabular-nums tracking-tight',
+              s.alert && 'text-[#DC3545]',
+              s.signal && !s.alert && 'text-[#017E84]',
+              !s.alert && !s.signal && 'text-[#212529]',
             )}
           >
             {s.value}

@@ -33,7 +33,7 @@ export function TaskActivity({ taskId }: { taskId: string }) {
 
   return (
     <div>
-      <ul className="divide-y rounded-md border border-border">
+      <ul className="divide-y divide-[#DEE2E6] border-y border-[#DEE2E6]">
         {items.map((item) => (
           <ActivityItem key={item.id} activity={item} />
         ))}
@@ -43,6 +43,7 @@ export function TaskActivity({ taskId }: { taskId: string }) {
           <Button
             variant="outline"
             size="sm"
+            className="border-[#DEE2E6]"
             onClick={() => void activity.fetchNextPage()}
             disabled={activity.isFetchingNextPage}
           >

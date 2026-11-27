@@ -1,29 +1,33 @@
 # DevSync
 
-Collaborative workspace for software teams — somewhere between Linear, GitHub Projects, and a light coordination layer for AI coding agents.
+[![CI](https://github.com/WilliamsLenkeu/devsync/actions/workflows/ci.yml/badge.svg)](https://github.com/WilliamsLenkeu/devsync/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/node-%E2%89%A522-brightgreen)](https://nodejs.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-11-yellow)](https://pnpm.io/)
 
-Organize workspaces and projects, track tasks on a Kanban board, collaborate in real time, follow activity and notifications, and connect external agents through a scoped REST API and an [MCP](apps/mcp-server/README.md) server.
+**Collaborative workspace for software teams** — Kanban, real-time presence, activity, and a first-class API + MCP surface for AI coding agents.
 
-**Product language:** English · **License:** [MIT](LICENSE)
+Product UI language: **English** · License: **[MIT](LICENSE)**
 
-## Features
+![Sign in](docs/screenshots/01-login.png)
 
-- Email/password auth (Argon2, HTTP-only cookies, refresh-token rotation)
-- Workspaces with roles: Owner / Admin / Member / Viewer (enforced on the API)
-- Projects, Kanban board with persistent drag-and-drop, comments, mentions
-- Real-time WebSocket updates + in-app notifications
-- Activity feed and workspace dashboard (real DB aggregates)
-- Scoped API tokens + MCP tools for external AI agents
+## Why DevSync
+
+- **Team Kanban** with roles (Owner / Admin / Member / Viewer) enforced on the API — not only in the UI
+- **Real-time** WebSocket events (optional **Redis** fan-out for multi-node)
+- **Invitations by email** (Resend) with secure one-time fallback link
+- **Task attachments** (local disk, MIME allowlist, size cap)
+- **Agent-ready**: scoped API tokens (`dsk_…`) + [`apps/mcp-server`](apps/mcp-server/README.md)
 
 ## Stack
 
 | Layer | Tech |
 | --- | --- |
-| Web | React, TypeScript, Vite, Tailwind, shadcn/ui, TanStack Query |
+| Web | React, TypeScript, Vite, Tailwind, shadcn/ui, TanStack Query, GSAP |
 | API | Node.js, Fastify, Zod, Prisma 7, PostgreSQL, WebSocket |
-| Agents | REST `/api/agent/*` + MCP server (`@modelcontextprotocol/sdk`) |
-| Tooling | pnpm workspaces, Vitest, Playwright, ESLint, Prettier, GitHub Actions |
-| Containers | `wslc` / `wslc-compose` locally (Docker Compose compatible file) |
+| Agents | REST `/api/agent/*` + MCP stdio client |
+| Tooling | pnpm workspaces, Vitest, ESLint, Prettier, GitHub Actions |
+| Containers | `docker-compose.yml` (local default: **wslc** / `wslc-compose`) |
 
 ## Architecture
 
@@ -31,97 +35,135 @@ Organize workspaces and projects, track tasks on a Kanban board, collaborate in 
 flowchart LR
   Browser -->|cookies / WS| Web[apps/web]
   Web -->|/api proxy| API[apps/api]
-  Agent[AI agent / MCP] -->|Bearer dsk_| API
+  Agent[AI agent] -->|Bearer dsk_| API
   MCP[apps/mcp-server] -->|REST agent API| API
   API --> PG[(PostgreSQL)]
+  API -.->|optional REDIS_URL| Redis[(Redis pub/sub)]
 ```
 
-Monorepo: `apps/api`, `apps/web`, `apps/mcp-server`, `packages/shared`. Contract: [`docs/api-contract.md`](docs/api-contract.md). Decisions: [`docs/decisions.md`](docs/decisions.md).
+Monorepo: `apps/api` · `apps/web` · `apps/mcp-server` · `packages/shared`
+
+Docs index: [`docs/README.md`](docs/README.md) · API contract: [`docs/api-contract.md`](docs/api-contract.md) · Decisions: [`docs/decisions.md`](docs/decisions.md)
 
 ## Prerequisites
 
 - Node.js ≥ 22 (24 recommended), pnpm 11 (`corepack enable`)
-- PostgreSQL 16 via **wslc-compose** (this repo’s default) or Docker Compose
+- PostgreSQL 16
 - Git
+- Optional: Redis 7 (multi-node realtime)
 
 ## Quick start
 
 ```powershell
 pnpm install
 Copy-Item .env.example .env
-# set JWT_ACCESS_SECRET to ≥ 32 random characters
+# Set JWT_ACCESS_SECRET to ≥ 32 random characters
 pnpm db:up
 pnpm --filter @devsync/api db:migrate
-pnpm --filter @devsync/api db:seed   # optional demo: ada@ / lin@devsync.dev
-pnpm --filter @devsync/api dev       # http://localhost:3000  OpenAPI /docs
+pnpm --filter @devsync/api db:seed
+pnpm --filter @devsync/api dev       # http://localhost:3000  · OpenAPI /docs
 pnpm --filter @devsync/web dev       # http://localhost:5173
 ```
 
-Demo accounts after seed: `ada@devsync.dev` / `lin@devsync.dev` — password `devsync-demo-123` (override with `DEMO_PASSWORD`).
+**Demo accounts** (after seed): `ada@devsync.dev` / `lin@devsync.dev` — password `devsync-demo-123` (override with `DEMO_PASSWORD`).
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/procedures.md](docs/procedures.md) for DB reset, stack containers, JWT rotation, and wslc quirks.
+Open **`http://localhost:5173`** (not `127.0.0.1`) so the Origin matches `WEB_ORIGIN`.
+
+More: [CONTRIBUTING.md](CONTRIBUTING.md) · [docs/procedures.md](docs/procedures.md)
 
 ## Environment
 
-Copy `.env.example` → `.env`. Required: `DATABASE_URL`, `JWT_ACCESS_SECRET`. Web origin defaults to `http://localhost:5173`. MCP: `DEVSYNC_API_URL`, `DEVSYNC_API_TOKEN` (`dsk_…`).
+Copy `.env.example` → `.env`. Never commit `.env`.
 
-Never commit real secrets.
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `DATABASE_URL` | yes | PostgreSQL |
+| `JWT_ACCESS_SECRET` | yes | ≥ 32 chars |
+| `WEB_ORIGIN` | no | Default `http://localhost:5173` |
+| `RESEND_API_KEY` | no | Invitation email; skipped if unset |
+| `REDIS_URL` | no | Multi-node event fan-out |
+| `ATTACHMENTS_DIR` | no | Default `.data/attachments` |
+| `DEVSYNC_API_TOKEN` | MCP | Token `dsk_…` for the MCP server |
+
+## Usage
+
+| Surface | URL / entry |
+| --- | --- |
+| Web app | `http://localhost:5173` |
+| OpenAPI | `http://localhost:3000/docs` |
+| WebSocket | `GET /api/ws` (cookie auth) |
+| Agent REST | `/api/agent/*` with `Authorization: Bearer dsk_…` |
+| MCP | `pnpm --filter @devsync/mcp-server start` |
 
 ## Docker / wslc
 
 ```powershell
 wslc-compose build api web
 wslc exec devsync-db-1 psql -U devsync -c "CREATE DATABASE devsync_stack"
-# STACK_DB=devsync_stack WEB_ORIGIN=http://localhost:8080 in .env
+# STACK_DB=devsync_stack WEB_ORIGIN=http://localhost:8080 COOKIE_SECURE=true in .env
 wslc-compose up migrate
-wslc-compose up -d api web   # web :8080 → proxies /api (+ WS)
+wslc-compose up -d api web   # http://localhost:8080
 ```
 
-Plain Docker: same `docker-compose.yml` with `docker compose`.
+Optional Redis: `wslc-compose --profile realtime up -d redis` then set `REDIS_URL`.
+
+Plain Docker: same compose file with `docker compose`.
+
+## Deploy web on Vercel (not run automatically)
+
+Config is ready at the repo root: [`vercel.json`](vercel.json) + [`.vercelignore`](.vercelignore). The SPA stays same-origin on `/api` via a rewrite (cookies `SameSite=Lax` keep working).
+
+When you are ready:
+
+1. Replace `API_HOST_PLACEHOLDER` in `vercel.json` with your public API host (example: `api.example.com`).
+2. On the **API** host, set `WEB_ORIGIN=https://<your-vercel-domain>` and `COOKIE_SECURE=true`.
+3. From the repo root (pnpm workspace):
+
+```powershell
+pnpm dlx vercel link
+pnpm dlx vercel          # preview
+pnpm dlx vercel --prod   # production
+```
+
+Or import the GitHub repo in the Vercel dashboard (Root Directory = repository root, framework detected from `vercel.json`).
+
+Optional local reference: [`apps/web/.env.example`](apps/web/.env.example). Do **not** set `VITE_API_ORIGIN` unless you intentionally leave same-origin mode.
 
 ## Testing
 
 ```powershell
 pnpm typecheck
 pnpm lint
-pnpm test                                 # unit + API injection (needs DB)
+pnpm test
 ```
-
-GUI smoke on this machine: run API + web, open `http://localhost:5173` (**localhost**, not `127.0.0.1` — must match `WEB_ORIGIN`), sign in with the demo accounts. Prefer **agent-desktop** for desktop QA (Playwright is optional and not required locally).
-
-## API documentation
-
-- Interactive OpenAPI UI: `http://localhost:3000/docs`
-- Contract (routes, shapes, WS events): [`docs/api-contract.md`](docs/api-contract.md)
-
-## MCP integration
-
-Create an API token in the web UI (**API tokens**), then see [`apps/mcp-server/README.md`](apps/mcp-server/README.md) for Cursor / Claude Desktop config and the nine tools (`list_workspaces` … `get_project_activity`).
-
-## Security
-
-- Passwords hashed with Argon2id; refresh tokens and API secrets stored as SHA-256 only
-- CSRF defence: `SameSite=Lax` cookies + Origin check on unsafe methods
-- Rate limits on auth routes; Helmet; explicit CORS
-- Workspace authorization centralized in `authorize()` (non-members get 404)
-- Tokens are workspace-bound; effective rights = scopes ∩ current role
 
 ## Screenshots
 
-Real captures via **agent-desktop** (Chrome / Windows):
-
-![Landing](docs/screenshots/01-landing.png)
-
 ![Dashboard](docs/screenshots/02-dashboard.png)
 
-![Kanban board](docs/screenshots/03-board.png)
+![Projects](docs/screenshots/03-projects.png)
+
+![Kanban board](docs/screenshots/04-board.png)
+
+![Sidebar](docs/screenshots/05-sidebar.png)
+
+![Invitations](docs/screenshots/06-invitations.png)
 
 ## Roadmap
 
-- [ ] Email delivery for invitations (currently one-time link shown to admin)
-- [ ] Multi-node realtime (Redis / PG LISTEN) — today single-process EventBus
-- [ ] File attachments on tasks
+- [x] Invitation email delivery (Resend)
+- [x] Multi-node realtime (Redis pub/sub)
+- [x] Task file attachments (local disk)
 - [ ] OAuth / SSO
+- [ ] Cross-node presence
+- [ ] Object storage for attachments (S3-compatible)
+
+## Security
+
+- Argon2id passwords; refresh & API secrets stored hashed
+- HTTP-only cookies, `SameSite=Lax`, Origin check, Helmet, rate limits
+- Workspace authz via `authorize()` / `can()` — never UI-only
+- Invitation tokens never logged; shown once at creation
 
 ## Contributing
 

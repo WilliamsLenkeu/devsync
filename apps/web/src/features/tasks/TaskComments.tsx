@@ -56,17 +56,17 @@ export function TaskComments({
           description={canWrite ? 'Mention teammates with @name.' : 'Nothing here yet.'}
         />
       ) : (
-        <ul className="space-y-1">
+        <ul className="divide-y divide-[#DEE2E6] border-y border-[#DEE2E6]">
           {list.map((comment) => (
             <li
               key={comment.id}
-              className="group flex gap-3 rounded-md px-2 py-2.5 hover:bg-muted/40 motion-safe:transition-colors motion-safe:duration-150"
+              className="group flex gap-3 px-1 py-2.5 hover:bg-[#F8F9FA]"
             >
               <UserAvatar user={comment.author} className="mt-0.5 size-7" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-sm font-medium">{comment.author.name}</span>
-                  <time dateTime={comment.createdAt} className="text-xs text-muted-foreground">
+                  <span className="text-sm font-medium text-[#212529]">{comment.author.name}</span>
+                  <time dateTime={comment.createdAt} className="text-xs text-[#8F8F8F]">
                     {timeAgo(comment.createdAt)}
                   </time>
                   {canDelete(comment) && (
@@ -74,7 +74,7 @@ export function TaskComments({
                       type="button"
                       variant="ghost"
                       size="icon-sm"
-                      className="ml-auto text-muted-foreground opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 motion-safe:transition-opacity motion-reduce:opacity-100"
+                      className="ml-auto text-[#8F8F8F] opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"
                       aria-label="Delete comment"
                       onClick={() => remove.mutate({ commentId: comment.id, taskId })}
                     >
@@ -102,10 +102,13 @@ export function TaskComments({
 
 function CommentBody({ body }: { body: string }) {
   return (
-    <p className="mt-1 text-sm text-pretty whitespace-pre-wrap">
+    <p className="mt-1 text-sm text-[#212529] text-pretty whitespace-pre-wrap">
       {parseMentions(body).map((seg, i) =>
         seg.kind === 'mention' ? (
-          <span key={i} className="rounded-sm bg-primary/10 px-1 py-0.5 font-medium text-primary">
+          <span
+            key={i}
+            className="rounded-sm bg-[#017E84]/12 px-1 py-0.5 font-medium text-[#017E84]"
+          >
             @{seg.name}
           </span>
         ) : (
@@ -146,7 +149,7 @@ function CommentComposer({
   };
 
   return (
-    <div className="relative grid gap-2 rounded-md border border-border bg-card p-3">
+    <div className="relative grid gap-2 rounded-lg border border-[#DEE2E6] bg-[#F8F9FA] p-3 shadow-[0_1px_2px_rgba(0,0,0,.04)]">
       <Textarea
         aria-label="New comment"
         placeholder="Write a comment… Use @ to mention"
@@ -190,7 +193,7 @@ function CommentComposer({
         <ul
           role="listbox"
           aria-label="Mention suggestions"
-          className="absolute bottom-full left-0 z-10 mb-1 max-h-48 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md"
+          className="absolute bottom-full left-0 z-10 mb-1 max-h-48 w-full overflow-auto rounded-lg border border-[#DEE2E6] bg-white p-1 shadow-[0_4px_12px_rgba(0,0,0,.1)]"
         >
           {suggestions.map((m, i) => (
             <li key={m.userId}>
@@ -199,8 +202,8 @@ function CommentComposer({
                 role="option"
                 aria-selected={i === activeIdx}
                 className={cn(
-                  'flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm focus-visible:outline-none',
-                  i === activeIdx ? 'bg-accent' : 'hover:bg-accent/70',
+                  'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm focus-visible:outline-none',
+                  i === activeIdx ? 'bg-[#017E84]/10 text-[#017E84]' : 'hover:bg-[#F8F9FA]',
                 )}
                 onMouseEnter={() => setActiveIdx(i)}
                 onClick={() => pick(m)}
@@ -212,9 +215,15 @@ function CommentComposer({
           ))}
         </ul>
       )}
-      <div className="flex items-center justify-between gap-2 border-t pt-2">
-        <p className="text-xs text-muted-foreground">Ctrl/⌘+Enter to send</p>
-        <Button type="button" size="sm" disabled={!body.trim() || pending} onClick={submit}>
+      <div className="flex items-center justify-between gap-2 border-t border-[#DEE2E6] pt-2">
+        <p className="text-xs text-[#8F8F8F]">Ctrl/⌘+Enter to send</p>
+        <Button
+          type="button"
+          size="sm"
+          disabled={!body.trim() || pending}
+          className="bg-[#017E84] text-white hover:bg-[#016A6F]"
+          onClick={submit}
+        >
           {pending ? 'Posting…' : 'Comment'}
         </Button>
       </div>

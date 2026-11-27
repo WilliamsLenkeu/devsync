@@ -6,15 +6,18 @@ import type { Workspace } from '@/lib/types';
 import { ThemeToggle } from './ThemeToggle';
 import { UserMenu } from './UserMenu';
 
-/** Dense field chrome. Flat, no blur. ENERGY 2 product dial. */
+/**
+ * Control panel Milk Desk : breadcrumb gauche, actions secondaires droite.
+ * Pas de CTA primary ici — réserve aux vues.
+ */
 export function TopBar({ workspace, onOpenNav }: { workspace?: Workspace; onOpenNav: () => void }) {
   return (
-    <header className="flex h-11 shrink-0 items-center gap-0.5 border-b border-border bg-background px-2 sm:px-3 lg:px-4">
+    <header className="flex h-12 shrink-0 items-center gap-1 border-b border-border bg-card px-2 shadow-[var(--elevation-1)] sm:px-4">
       <Button
         type="button"
         variant="ghost"
         size="icon"
-        className="size-11 md:hidden"
+        className="size-10 md:hidden"
         aria-label="Menu"
         onClick={onOpenNav}
       >
@@ -24,7 +27,7 @@ export function TopBar({ workspace, onOpenNav }: { workspace?: Workspace; onOpen
       <nav aria-label="Breadcrumb" className="flex min-w-0 flex-1 items-center gap-1 text-sm">
         <Link
           to="/app"
-          className="shrink-0 rounded-sm px-1 py-0.5 text-muted-foreground outline-none transition-colors duration-150 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          className="shrink-0 rounded-md px-1.5 py-1 text-muted-foreground outline-none transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
         >
           Workspaces
         </Link>

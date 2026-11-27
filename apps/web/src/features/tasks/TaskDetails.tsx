@@ -39,6 +39,7 @@ import { cn } from '@/lib/utils';
 import { useWorkspace } from '@/lib/workspace';
 import { dateInputToIso, isoToDateInput } from './boardLogic';
 import { LabelsEditor } from './LabelsEditor';
+import { PRIORITY_CHIP, STATUS_CHIP } from './milk';
 import { TaskActivity } from './TaskActivity';
 import { TaskComments } from './TaskComments';
 import { useProject, useProjectMembers, useTask } from './taskQueries';
@@ -73,7 +74,7 @@ export function TaskDetails({ taskId, onClose }: { taskId: string; onClose: () =
   }
 
   return (
-    <div className="space-y-5 p-5 sm:p-6" aria-busy="true" aria-label="Loading task">
+    <div className="space-y-5 bg-white p-5 sm:p-6" aria-busy="true" aria-label="Loading task">
       <Skeleton className="h-3 w-20" />
       <Skeleton className="h-8 w-4/5" />
       <div className="grid gap-3 sm:grid-cols-2">
@@ -83,7 +84,7 @@ export function TaskDetails({ taskId, onClose }: { taskId: string; onClose: () =
         <Skeleton className="h-9 w-full" />
       </div>
       <Skeleton className="h-28 w-full" />
-      <p className="text-sm text-muted-foreground">Loading task…</p>
+      <p className="text-sm text-[#8F8F8F]">Loading task…</p>
     </div>
   );
 }
@@ -109,13 +110,33 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
 
   return (
     <>
-      <header className="sticky top-0 z-10 space-y-1.5 border-b border-border bg-background p-5 pr-14">
-        <p className="font-mono text-xs font-medium tracking-tight text-primary">{task.key}</p>
+      <header className="sticky top-0 z-10 space-y-1 border-b border-[#DEE2E6] bg-white px-4 py-3.5 pr-14 sm:px-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="font-mono text-[12px] font-semibold tracking-tight text-[#017E84]">
+            {task.key}
+          </p>
+          <span
+            className={cn(
+              'rounded-full px-2 py-0.5 text-[11px] font-medium',
+              STATUS_CHIP[task.status],
+            )}
+          >
+            {humanize(task.status)}
+          </span>
+          <span
+            className={cn(
+              'rounded-full px-2 py-0.5 text-[11px] font-medium',
+              PRIORITY_CHIP[task.priority],
+            )}
+          >
+            {humanize(task.priority)}
+          </span>
+        </div>
         <TitleField value={task.title} readOnly={readOnly} onSave={(title) => save({ title })} />
       </header>
 
-      <div className="space-y-6 p-5 pb-8">
-        <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="space-y-5 bg-white px-4 py-4 pb-8 sm:px-5">
+        <dl data-milk-sheet className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Status">
             <Select
               value={task.status}
@@ -125,7 +146,7 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
                 move.mutate({ taskId: task.id, status: status as TaskStatus, beforeTaskId: null })
               }
             >
-              <SelectTrigger aria-label="Status" className="w-full">
+              <SelectTrigger aria-label="Status" className="w-full border-[#DEE2E6]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -143,7 +164,7 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
               disabled={readOnly}
               onValueChange={(priority) => save({ priority: priority as TaskPriority })}
             >
-              <SelectTrigger aria-label="Priority" className="w-full">
+              <SelectTrigger aria-label="Priority" className="w-full border-[#DEE2E6]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -161,7 +182,7 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
               disabled={readOnly}
               onValueChange={(v) => save({ assigneeId: v === NONE ? null : v })}
             >
-              <SelectTrigger aria-label="Assignee" className="w-full">
+              <SelectTrigger aria-label="Assignee" className="w-full border-[#DEE2E6]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -179,7 +200,7 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
               <Input
                 type="date"
                 aria-label="Due date"
-                className="h-9 min-w-0 flex-1"
+                className="h-9 min-w-0 flex-1 border-[#DEE2E6]"
                 readOnly={readOnly}
                 value={task.dueDate ? isoToDateInput(task.dueDate) : ''}
                 onChange={(e) =>
@@ -195,23 +216,30 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
           </Field>
         </dl>
 
-        <Field label="Description">
-          <DescriptionField
-            value={task.description}
-            readOnly={readOnly}
-            onSave={(description) => save({ description })}
-          />
-        </Field>
+        <div data-milk-sheet>
+          <Field label="Description">
+            <DescriptionField
+              value={task.description}
+              readOnly={readOnly}
+              onSave={(description) => save({ description })}
+            />
+          </Field>
+        </div>
 
-        <Field label="Labels">
-          <LabelsEditor
-            labels={task.labels}
-            readOnly={readOnly}
-            onChange={(labels) => save({ labels })}
-          />
-        </Field>
+        <div data-milk-sheet>
+          <Field label="Labels">
+            <LabelsEditor
+              labels={task.labels}
+              readOnly={readOnly}
+              onChange={(labels) => save({ labels })}
+            />
+          </Field>
+        </div>
 
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 border border-border bg-muted/25 px-3 py-3 text-sm">
+        <dl
+          data-milk-sheet
+          className="grid grid-cols-2 gap-x-4 gap-y-3 border-y border-[#DEE2E6] py-3 text-sm"
+        >
           <Field label="Reporter">
             <span className="flex items-center gap-2">
               <UserAvatar user={task.reporter} className="size-6" />
@@ -227,11 +255,11 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
         </dl>
 
         {canDelete && (
-          <div className="border-t border-border pt-4">
+          <div data-milk-sheet className="border-t border-[#DEE2E6] pt-3">
             <Button
               variant="outline"
               size="sm"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              className="border-[#DC3545]/40 text-[#DC3545] hover:bg-[#F8D7DA] hover:text-[#721C24]"
               onClick={() => setConfirmDelete(true)}
             >
               <Trash2 aria-hidden />
@@ -240,15 +268,25 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
           </div>
         )}
 
-        <Tabs defaultValue="comments" className="gap-0">
-          <TabsList className="w-full justify-start">
-            <TabsTrigger value="comments">Comments ({task.commentCount})</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
+        <Tabs data-milk-sheet defaultValue="comments" className="gap-0">
+          <TabsList variant="line" className="w-full justify-start">
+            <TabsTrigger
+              value="comments"
+              className="data-[state=active]:text-[#017E84] data-[state=active]:after:bg-[#017E84]"
+            >
+              Comments ({task.commentCount})
+            </TabsTrigger>
+            <TabsTrigger
+              value="activity"
+              className="data-[state=active]:text-[#017E84] data-[state=active]:after:bg-[#017E84]"
+            >
+              Activity
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="comments" className="pt-4">
+          <TabsContent value="comments" className="pt-3">
             <TaskComments taskId={task.id} scope={scope} readOnly={readOnly} />
           </TabsContent>
-          <TabsContent value="activity" className="pt-4">
+          <TabsContent value="activity" className="pt-3">
             <TaskActivity taskId={task.id} />
           </TabsContent>
         </Tabs>
@@ -280,13 +318,12 @@ function TaskBody({ task, onClose }: { task: Task; onClose: () => void }) {
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="grid content-start gap-1.5">
-      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+      <dt className="text-xs font-medium text-[#8F8F8F]">{label}</dt>
       <dd className="min-w-0">{children}</dd>
     </div>
   );
 }
 
-/** Saves on blur / Enter, only when the value actually changed. */
 function TitleField({
   value,
   readOnly,
@@ -311,9 +348,8 @@ function TitleField({
       onBlur={commit}
       onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
       className={cn(
-        '-mx-1 w-full rounded-md bg-transparent px-1 text-lg font-semibold tracking-tight text-balance outline-none',
-        'motion-safe:transition-colors motion-safe:duration-150',
-        'hover:bg-muted/50 focus-visible:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring',
+        '-mx-1 w-full rounded-md bg-transparent px-1 text-lg font-semibold tracking-tight text-[#212529] text-balance outline-none',
+        'hover:bg-[#F8F9FA] focus-visible:bg-[#F8F9FA] focus-visible:ring-2 focus-visible:ring-[#017E84]',
         'read-only:hover:bg-transparent read-only:focus-visible:bg-transparent',
       )}
     />
@@ -343,7 +379,7 @@ function DescriptionField({
       readOnly={readOnly}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
-      className="min-h-24 resize-y text-sm"
+      className="min-h-24 resize-y border-[#DEE2E6] text-sm"
     />
   );
 }

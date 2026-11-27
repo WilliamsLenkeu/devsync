@@ -70,7 +70,7 @@ Jamais de notification à soi-même. Mentions dans un commentaire : `@[Nom](user
 | `PATCH /workspaces/:workspaceId/members/:userId {role}` | ADMIN | interdit de changer/créer un OWNER sauf si l'acteur est OWNER ; le dernier OWNER ne peut pas être rétrogradé |
 | `DELETE /workspaces/:workspaceId/members/:userId` 204 | ADMIN, ou soi-même (quitter) | le dernier OWNER ne peut pas partir ; retire aussi ses ProjectMember et désassigne ses tâches du workspace |
 | `GET /workspaces/:workspaceId/invitations` | ADMIN | PENDING seulement |
-| `POST /workspaces/:workspaceId/invitations {email,role}` 201 | ADMIN | rôle OWNER interdit ; 409 si déjà membre ou invitation PENDING ; renvoie `{data:{invitation, token}}` — `token` en clair UNE seule fois (pas de SMTP : le lien `/invitations/accept?token=` est affiché à l'admin) ; expire après 7 j ; notification WORKSPACE_INVITATION si l'email correspond à un utilisateur |
+| `POST /workspaces/:workspaceId/invitations {email,role}` 201 | ADMIN | rôle OWNER interdit ; 409 si déjà membre ou invitation PENDING ; renvoie `{data:{invitation, token, emailDelivery}}` — `token` en clair UNE seule fois ; `emailDelivery` = `sent`\|`skipped`\|`failed` (Resend via `RESEND_API_KEY` / `MAIL_FROM`, défaut `onboarding@resend.dev` ; test → always `skipped`) ; le lien `/invitations/accept?token=` reste le fallback UI ; expire après 7 j ; notification WORKSPACE_INVITATION si l'email correspond à un utilisateur |
 | `DELETE /workspaces/:workspaceId/invitations/:invitationId` 204 | ADMIN | → REVOKED |
 | `GET /invitations` | — | invitations PENDING non expirées adressées à MON email |
 | `POST /invitations/:invitationId/accept` · `/decline` | — | l'email de l'invitation doit être le mien ; accept crée le WorkspaceMember (transaction), activité MEMBER_JOINED, event `member.joined` |
@@ -139,9 +139,21 @@ Les actions des agents apparaissent dans le fil (`viaAgent: true`) et sont journ
 - Client → serveur : `{type:"subscribe", workspaceId}` · `{type:"unsubscribe", workspaceId}` · `{type:"ping"}`.
 - Serveur → client : `{type:"subscribed", workspaceId, presence:[userId]}` · `{type:"error", code, message}` (non-membre : `NOT_FOUND`) · `{type:"pong"}` · `{type:"event", event: DomainEvent}` avec `DomainEvent = { id, type, workspaceId, projectId?, actorId?, data, at }` (src/events.ts). Les événements avec `audience` ne vont qu'à ces utilisateurs (toutes leurs sockets, abonnées ou non).
 - Un événement n'est livré qu'aux sockets abonnées au workspace ET dont l'utilisateur est toujours membre (revérifié à la livraison pour les `member.removed`). Heartbeat serveur 30 s (ws ping) ; sockets mortes fermées.
-- Présence : en mémoire, par workspace ; `presence.changed {userIds}` diffusé à l'arrivée/départ d'un premier/dernier socket d'un utilisateur.
-- Types d'événements & `data` : `project.created|updated {project}` · `task.created|updated|assigned {task}` · `task.status_changed {task, from, to}` · `task.deleted {taskId, projectId}` · `comment.created {taskId, comment}` · `member.joined {member}` · `member.removed {userId}` · `member.role_changed {userId, role}` · `presence.changed {userIds}` · `notification.created {id,type,data,createdAt}`.
+- Présence : en mémoire **par processus**, par workspace ; `presence.changed {userIds}` diffusé à l'arrivée/départ d'un premier/dernier socket d'un utilisateur. (Pas partagée entre nœuds API.)
+- Bus d'événements : in-process par défaut ; si `REDIS_URL` est défini, fan-out Redis pub/sub canal `devsync:events` (multi-nœud). Les clients WS d'un nœud reçoivent aussi les events publiés par les autres nœuds.
+- Types d'événements & `data` : `project.created|updated {project}` · `task.created|updated|assigned {task}` · `task.status_changed {task, from, to}` · `task.deleted {taskId, projectId}` · `comment.created {taskId, comment}` · `attachment.created {attachment}` · `attachment.deleted {attachmentId, taskId}` · `member.joined {member}` · `member.removed {userId}` · `member.role_changed {userId, role}` · `presence.changed {userIds}` · `notification.created {id,type,data,createdAt}`.
 - Dédoublonnage : chaque événement a un `id` unique, le client ignore les ids déjà vus ; reconnexion avec backoff exponentiel (1 s → 30 s) + resubscribe + refetch des requêtes actives.
+
+## Pièces jointes — tâches (`modules/tasks`)
+
+| Méthode | Authz | Notes |
+| --- | --- | --- |
+| `GET /tasks/:taskId/attachments` | VIEWER (`task:read`) | liste métadonnées |
+| `POST /tasks/:taskId/attachments` multipart (`file`, `commentId?`) 201 | MEMBER (`task:write`) | allowlist MIME ; max `ATTACHMENTS_MAX_BYTES` (défaut 10 MiB) ; stockage `ATTACHMENTS_DIR` |
+| `GET /attachments/:attachmentId/download` | VIEWER | stream fichier |
+| `DELETE /attachments/:attachmentId` 204 | MEMBER (`task:write`) | métadonnée + fichier |
+
+`Attachment = { id, taskId, commentId, filename, contentType, byteSize, uploadedBy, createdAt }`.
 
 ## Santé / docs
 `GET /health` · `GET /health/ready` (SELECT 1) · OpenAPI JSON `/docs/json`, UI `/docs`.

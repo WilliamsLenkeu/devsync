@@ -88,13 +88,13 @@ export function MembersTable({ members }: { members: Member[] }) {
 
   return (
     <>
-      <div className="overflow-x-auto border-y">
+      <div className="overflow-x-auto rounded-lg border border-[#DEE2E6] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
         <Table>
           <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="h-9 text-xs text-muted-foreground">Member</TableHead>
-              <TableHead className="h-9 text-xs text-muted-foreground">Role</TableHead>
-              <TableHead className="hidden h-9 text-xs text-muted-foreground sm:table-cell">
+            <TableRow className="border-[#DEE2E6] bg-[#F8F9FA] hover:bg-[#F8F9FA]">
+              <TableHead className="h-9 text-xs font-medium text-[#6C757D]">Member</TableHead>
+              <TableHead className="h-9 text-xs font-medium text-[#6C757D]">Role</TableHead>
+              <TableHead className="hidden h-9 text-xs font-medium text-[#6C757D] sm:table-cell">
                 Joined
               </TableHead>
               <TableHead className="h-9 w-0">
@@ -108,20 +108,22 @@ export function MembersTable({ members }: { members: Member[] }) {
               const editable = canChangeRole(workspace.role, m, members);
               const removable = canRemoveMember(workspace.role, m, members, me.id);
               return (
-                <TableRow key={m.userId}>
+                <TableRow
+                  key={m.userId}
+                  data-stagger-item
+                  className="border-[#DEE2E6] hover:bg-[#F8F9FA]"
+                >
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <UserAvatar user={m.user} className="size-8 text-xs" />
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">
+                        <p className="truncate text-sm font-medium text-[#212529]">
                           {m.user.name}
                           {isMe && (
-                            <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-                              (you)
-                            </span>
+                            <span className="ml-1.5 text-xs font-normal text-[#6C757D]">(you)</span>
                           )}
                         </p>
-                        <p className="truncate text-xs text-muted-foreground">{m.user.email}</p>
+                        <p className="truncate text-xs text-[#6C757D]">{m.user.email}</p>
                       </div>
                     </div>
                   </TableCell>
@@ -136,7 +138,7 @@ export function MembersTable({ members }: { members: Member[] }) {
                       >
                         <SelectTrigger
                           size="sm"
-                          className="w-32"
+                          className="w-32 border-[#DEE2E6]"
                           aria-label={`Role of ${m.user.name}`}
                         >
                           <SelectValue />
@@ -150,15 +152,25 @@ export function MembersTable({ members }: { members: Member[] }) {
                         </SelectContent>
                       </Select>
                     ) : (
-                      <Badge variant="outline">{ROLE_LABEL[m.role]}</Badge>
+                      <Badge
+                        variant="outline"
+                        className="border-transparent bg-[#E9ECEF] font-normal text-[#495057]"
+                      >
+                        {ROLE_LABEL[m.role]}
+                      </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="hidden text-sm text-muted-foreground tabular-nums sm:table-cell">
+                  <TableCell className="hidden text-sm tabular-nums text-[#6C757D] sm:table-cell">
                     {formatDate(m.joinedAt)}
                   </TableCell>
                   <TableCell>
                     {isMe && removable && (
-                      <Button variant="outline" size="sm" onClick={() => setRemoving(m)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-[#DEE2E6] bg-[#E9ECEF] text-[#212529] hover:bg-[#DEE2E6]"
+                        onClick={() => setRemoving(m)}
+                      >
                         <LogOut aria-hidden />
                         Leave
                       </Button>

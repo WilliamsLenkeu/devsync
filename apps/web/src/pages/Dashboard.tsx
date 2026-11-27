@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { FolderKanban, Plus } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { EmptyState, ErrorState, PageHeader } from '@/components/states';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,24 +10,31 @@ import { RecentActivity } from '@/features/dashboard/RecentActivity';
 import { StatCards } from '@/features/dashboard/StatCards';
 import { CreateProjectDialog } from '@/features/projects/ProjectFormDialog';
 import { api } from '@/lib/api';
+import { usePageEnter, useStaggerEnter } from '@/lib/motion';
 import { qk } from '@/lib/queryKeys';
 import type { Dashboard } from '@/lib/types';
 import { useWorkspace } from '@/lib/workspace';
 
 /**
- * Design Read: app home for eng teammates, signal-console language,
- * dial ENERGY 2 / RHYTHM 2 / MOTION 1.
- * Job: see my open work, then project progress, then recent noise.
- * Composition: totals strip → assigned band → progress + activity stack (not card grid).
+ * Design Read: Milk Desk home — control panel + Material cards,
+ * ENERGY 2 / RHYTHM 3 / MOTION 2. One primary CTA.
  */
 export function DashboardPage() {
   const { workspace, can } = useWorkspace();
   const [createOpen, setCreateOpen] = useState(false);
   const canCreate = can('project:create');
+  const rootRef = useRef<HTMLDivElement>(null);
   const dashboard = useQuery({
     queryKey: qk.dashboard(workspace.id),
     queryFn: () => api.get<Dashboard>(`/workspaces/${workspace.id}/dashboard`),
   });
+
+  usePageEnter(rootRef, [dashboard.isSuccess, dashboard.dataUpdatedAt]);
+  useStaggerEnter(rootRef, '[data-stagger-item]', [
+    dashboard.isSuccess,
+    dashboard.dataUpdatedAt,
+    dashboard.data?.projectProgress.length,
+  ]);
 
   let content: ReactNode;
   if (dashboard.isPending) {
@@ -42,7 +49,10 @@ export function DashboardPage() {
         description="Create a project to group tasks on a board and track progress with your team."
         action={
           canCreate && (
-            <Button onClick={() => setCreateOpen(true)}>
+            <Button
+              className="bg-[#017E84] text-white hover:bg-[#016a6f]"
+              onClick={() => setCreateOpen(true)}
+            >
               <Plus aria-hidden />
               Create your first project
             </Button>
@@ -53,10 +63,10 @@ export function DashboardPage() {
   } else {
     const data = dashboard.data;
     content = (
-      <div className="space-y-7">
+      <div className="space-y-5">
         <StatCards totals={data.totals} />
         <AssignedTasks workspaceId={workspace.id} assigned={data.assignedToMe} />
-        <div className="grid gap-7 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:gap-8">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
           <ProjectProgressList workspaceId={workspace.id} projects={data.projectProgress} />
           <RecentActivity activity={data.recentActivity} />
         </div>
@@ -65,7 +75,7 @@ export function DashboardPage() {
   }
 
   return (
-    <>
+    <div ref={rootRef} className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
       <PageHeader
         title="Dashboard"
         description={workspace.name}
@@ -74,7 +84,10 @@ export function DashboardPage() {
           !dashboard.isPending &&
           !dashboard.isError &&
           (dashboard.data?.projectProgress.length ?? 0) > 0 && (
-            <Button onClick={() => setCreateOpen(true)}>
+            <Button
+              className="bg-[#017E84] text-white hover:bg-[#016a6f]"
+              onClick={() => setCreateOpen(true)}
+            >
               <Plus aria-hidden />
               Create project
             </Button>
@@ -89,58 +102,27 @@ export function DashboardPage() {
           workspaceId={workspace.id}
         />
       )}
-    </>
+    </div>
   );
 }
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-7" aria-busy="true" aria-label="Loading dashboard">
-      <div className="flex flex-col border-y sm:flex-row sm:divide-x">
+    <div className="space-y-5" aria-busy="true" aria-label="Loading dashboard">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="flex flex-1 items-baseline justify-between gap-3 border-b py-2.5 last:border-b-0 sm:flex-col sm:gap-1 sm:border-b-0 sm:px-5 sm:py-3.5 first:sm:pl-0"
-          >
+          <div key={i} className="rounded-lg border border-[#DEE2E6] bg-white p-3.5">
             <Skeleton className="h-3 w-16" />
-            <Skeleton className="h-7 w-10" />
+            <Skeleton className="mt-2 h-7 w-10" />
           </div>
         ))}
       </div>
-      <div>
-        <Skeleton className="mb-2 h-4 w-28" />
-        <div className="divide-y border-t">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center gap-3 py-2.5">
-              <Skeleton className="h-3 w-12" />
-              <Skeleton className="h-4 flex-1" />
-              <Skeleton className="h-5 w-14" />
-            </div>
+      <div className="rounded-lg border border-[#DEE2E6] bg-white p-4">
+        <Skeleton className="mb-3 h-4 w-28" />
+        <div className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-8 w-full" />
           ))}
-        </div>
-      </div>
-      <div className="grid gap-7 lg:grid-cols-2">
-        <div>
-          <Skeleton className="mb-2 h-4 w-32" />
-          <div className="space-y-3 border-t pt-2.5">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="space-y-1.5">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-2.5 w-full" />
-              </div>
-            ))}
-          </div>
-        </div>
-        <div>
-          <Skeleton className="mb-2 h-4 w-28" />
-          <div className="divide-y border-t">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="flex items-center gap-3 py-2.5">
-                <Skeleton className="size-7 rounded-full" />
-                <Skeleton className="h-4 flex-1" />
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>

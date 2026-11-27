@@ -1,10 +1,11 @@
 import { can } from '@devsync/shared';
-import { useQuery } from '@tanstack/react-query';
 import {
   Activity,
   FolderKanban,
   KeyRound,
   LayoutDashboard,
+  PanelLeft,
+  PanelLeftClose,
   Settings,
   Users,
   type LucideIcon,
@@ -12,41 +13,88 @@ import {
 import { Link, NavLink } from 'react-router-dom';
 import { Logo } from '@/components/layout/Logo';
 import { navLinkClass } from '@/components/layout/navLinkClass';
-import { projectTint } from '@/components/layout/projectTint';
 import { WorkspaceSwitcher } from '@/components/layout/WorkspaceSwitcher';
-import { api } from '@/lib/api';
-import { qk } from '@/lib/queryKeys';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { Project, Workspace } from '@/lib/types';
+import type { Workspace } from '@/lib/types';
 
 interface AppSidebarProps {
   workspace?: Workspace;
   onNavigate?: () => void;
+  /** Rail icônes (collapsed hors peek). */
+  collapsed?: boolean;
+  /** Sidebar épinglée ouverte (pas seulement peek). */
+  pinned?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-export function AppSidebar({ workspace, onNavigate }: AppSidebarProps) {
+export function AppSidebar({
+  workspace,
+  onNavigate,
+  collapsed = false,
+  pinned = true,
+  onToggleCollapse,
+}: AppSidebarProps) {
   return (
     <div className="flex h-full flex-col bg-sidebar">
-      <div className="flex items-center gap-2 border-b border-sidebar-border px-3 py-2.5">
-        <Logo />
-        <Link
-          to="/app"
-          onClick={onNavigate}
-          className="rounded-md text-sm font-semibold tracking-tight text-sidebar-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
-        >
-          DevSync
-        </Link>
+      <div
+        className={cn(
+          'flex h-12 items-center border-b border-sidebar-border',
+          collapsed ? 'justify-center px-1' : 'gap-2 px-2',
+        )}
+      >
+        {collapsed ? (
+          <Link
+            to="/app"
+            onClick={onNavigate}
+            className="rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+            aria-label="DevSync"
+          >
+            <Logo />
+          </Link>
+        ) : (
+          <>
+            <Logo />
+            <Link
+              to="/app"
+              onClick={onNavigate}
+              className="min-w-0 flex-1 truncate rounded-md text-sm font-semibold text-sidebar-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+            >
+              DevSync
+            </Link>
+            {onToggleCollapse ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0 text-muted-foreground hover:bg-sidebar-accent hover:text-primary"
+                onClick={onToggleCollapse}
+                aria-label={pinned ? 'Collapse sidebar' : 'Keep sidebar open'}
+                aria-expanded={pinned}
+              >
+                {pinned ? (
+                  <PanelLeftClose className="size-4" aria-hidden />
+                ) : (
+                  <PanelLeft className="size-4" aria-hidden />
+                )}
+              </Button>
+            ) : null}
+          </>
+        )}
       </div>
-      <div className="border-b border-sidebar-border px-2.5 py-2.5">
-        <WorkspaceSwitcher current={workspace} />
+
+      <div className={cn('border-b border-sidebar-border', collapsed ? 'px-1.5 py-2' : 'px-2.5 py-2.5')}>
+        <WorkspaceSwitcher current={workspace} compact={collapsed} />
       </div>
       {workspace ? (
-        <WorkspaceNav workspace={workspace} onNavigate={onNavigate} />
+        <WorkspaceNav workspace={workspace} onNavigate={onNavigate} collapsed={collapsed} />
       ) : (
-        <div className="flex-1 px-3 py-5">
-          <p className="text-sm text-sidebar-foreground/65 text-pretty">
-            Choose a workspace to open its board and settings.
-          </p>
+        <div className={cn('flex-1 py-4', collapsed ? 'px-1.5' : 'px-3')}>
+          {!collapsed ? (
+            <p className="text-sm leading-normal text-muted-foreground text-pretty">
+              Choose a workspace to open its board and settings.
+            </p>
+          ) : null}
         </div>
       )}
     </div>
@@ -56,15 +104,13 @@ export function AppSidebar({ workspace, onNavigate }: AppSidebarProps) {
 function WorkspaceNav({
   workspace,
   onNavigate,
+  collapsed,
 }: {
   workspace: Workspace;
   onNavigate?: () => void;
+  collapsed: boolean;
 }) {
   const base = `/w/${workspace.id}`;
-  const projects = useQuery({
-    queryKey: [...qk.projects(workspace.id), { status: 'ACTIVE' }],
-    queryFn: () => api.get<Project[]>(`/workspaces/${workspace.id}/projects`, { status: 'ACTIVE' }),
-  });
 
   const links: NavItem[] = [
     { to: base, label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -78,55 +124,21 @@ function WorkspaceNav({
   ];
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-2 py-3">
+    <div
+      className={cn(
+        'flex min-h-0 flex-1 flex-col overflow-y-auto py-3',
+        collapsed ? 'px-1.5' : 'px-2',
+      )}
+    >
       <nav aria-label="Workspace">
         <ul className="grid gap-0.5">
           {links.map((item) => (
             <li key={item.label}>
-              <NavItemLink item={item} onNavigate={onNavigate} />
+              <NavItemLink item={item} onNavigate={onNavigate} collapsed={collapsed} />
             </li>
           ))}
         </ul>
       </nav>
-
-      {projects.isPending ? (
-        <p className="px-2.5 text-xs text-sidebar-foreground/55" aria-busy="true">
-          Loading projects…
-        </p>
-      ) : projects.isError ? (
-        <p className="px-2.5 text-xs text-destructive" role="alert">
-          Could not load projects.
-        </p>
-      ) : projects.data.length > 0 ? (
-        <nav aria-labelledby="sidebar-projects">
-          <h2
-            id="sidebar-projects"
-            className="px-2.5 pb-1.5 text-[11px] font-medium tracking-wide text-sidebar-foreground/50 uppercase"
-          >
-            Active projects
-          </h2>
-          <ul className="grid gap-0.5">
-            {projects.data.slice(0, 10).map((p) => (
-              <li key={p.id}>
-                <NavLink
-                  to={`${base}/projects/${p.id}/board`}
-                  onClick={onNavigate}
-                  className={({ isActive }) => navLinkClass(isActive)}
-                >
-                  <span
-                    aria-hidden
-                    className={cn('size-2 shrink-0 rounded-[3px]', projectTint(p.identifier))}
-                  />
-                  <span className="min-w-0 flex-1 truncate">{p.name}</span>
-                  <span className="shrink-0 font-mono text-[11px] text-sidebar-foreground/45">
-                    {p.identifier}
-                  </span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      ) : null}
     </div>
   );
 }
@@ -138,17 +150,26 @@ interface NavItem {
   end?: boolean;
 }
 
-function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
+function NavItemLink({
+  item,
+  onNavigate,
+  collapsed,
+}: {
+  item: NavItem;
+  onNavigate?: () => void;
+  collapsed: boolean;
+}) {
   const Icon = item.icon;
   return (
     <NavLink
       to={item.to}
       end={item.end}
       onClick={onNavigate}
-      className={({ isActive }) => navLinkClass(isActive)}
+      title={collapsed ? item.label : undefined}
+      className={({ isActive }) => cn(navLinkClass(isActive), collapsed && 'justify-center px-0')}
     >
       <Icon className="size-4 shrink-0 opacity-70" aria-hidden />
-      {item.label}
+      {collapsed ? <span className="sr-only">{item.label}</span> : item.label}
     </NavLink>
   );
 }

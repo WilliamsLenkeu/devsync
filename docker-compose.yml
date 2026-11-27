@@ -17,6 +17,14 @@ services:
     volumes:
       - devsync-db:/var/lib/postgresql/data
 
+  # Optional: multi-node realtime fan-out. Set REDIS_URL=redis://redis:6379 on `api`.
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    profiles:
+      - realtime
+
   migrate:
     build:
       context: .

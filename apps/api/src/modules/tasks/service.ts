@@ -26,7 +26,7 @@ import {
 } from './schemas';
 
 export interface Ctx {
-  app: Pick<FastifyInstance, 'db' | 'events' | 'log'>;
+  app: Pick<FastifyInstance, 'db' | 'events' | 'log' | 'config'>;
   principal: Principal;
 }
 

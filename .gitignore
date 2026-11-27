@@ -1,11 +1,59 @@
-node_modules
-dist
-.env
-*.log
-coverage
-playwright-report
-test-results
-.turbo
-apps/api/src/generated
+# Dependencies & build
+node_modules/
+dist/
+build/
+.turbo/
+out/
+apps/api/src/generated/
+*.tsbuildinfo
 
+# Env & secrets (never commit)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa
+id_rsa.pub
+credentials.json
+service-account*.json
+
+# Runtime / local data
+.data/
+uploads/
+tmp/
+temp/
+*.log
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+blob-report/
+
+# Browser / agent capture scratch (keep docs/screenshots/)
+**/browser-screenshots/
+page-*.png
+
+# Local design / scratch
 designs/
+
+# Agent / IDE local state (do not publish)
+.concord/
+.cursor/
+.agents/
+.codex/
+.devin/
+.gemini/
+.grok/
+.kiro/
+.qwen/
+.mcp.json
+.github/mcp.json
+.claude/
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini

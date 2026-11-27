@@ -15,7 +15,7 @@ const schema = z.object({
 const toInput = (labels: TaskLabel[]): LabelInput[] =>
   labels.map(({ name, color }) => ({ name, color }));
 
-/** PATCH `labels` replaces the whole set, so every change sends the full list. */
+/** Milk Desk label pills — compact readable chips. */
 export function LabelsEditor({
   labels,
   readOnly,
@@ -27,7 +27,7 @@ export function LabelsEditor({
 }) {
   const form = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { name: '', color: '#0f766e' },
+    defaultValues: { name: '', color: '#017E84' },
   });
 
   const add = form.handleSubmit(({ name, color }) => {
@@ -42,12 +42,12 @@ export function LabelsEditor({
   return (
     <div className="grid gap-2.5">
       <ul className="flex flex-wrap gap-1.5">
-        {labels.length === 0 && <li className="text-sm text-muted-foreground">No labels yet</li>}
+        {labels.length === 0 && <li className="text-sm text-[#8F8F8F]">No labels yet</li>}
         {labels.map((label) => (
           <li
             key={label.id}
-            className="group/label flex items-center gap-1 rounded-md py-0.5 pr-1 pl-2 text-xs font-medium"
-            style={{ backgroundColor: `${label.color}26`, color: label.color }}
+            className="group/label flex items-center gap-1 rounded-full py-0.5 pr-1 pl-2.5 text-xs font-medium"
+            style={{ backgroundColor: `${label.color}22`, color: label.color }}
           >
             <span
               className="size-1.5 shrink-0 rounded-full"
@@ -59,7 +59,7 @@ export function LabelsEditor({
               <button
                 type="button"
                 aria-label={`Remove label ${label.name}`}
-                className="grid size-5 place-items-center rounded opacity-70 hover:bg-black/10 hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none motion-safe:transition-opacity"
+                className="grid size-5 place-items-center rounded-full opacity-70 hover:bg-black/10 hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-[#017E84] focus-visible:outline-none"
                 onClick={() => onChange(toInput(labels.filter((l) => l.id !== label.id)))}
               >
                 <X className="size-3" aria-hidden />
@@ -74,12 +74,12 @@ export function LabelsEditor({
             <Input
               aria-label="New label name"
               placeholder="Add a label"
-              className="h-8 w-40"
+              className="h-8 w-40 border-[#DEE2E6]"
               aria-invalid={!!form.formState.errors.name}
               {...form.register('name')}
             />
             {form.formState.errors.name && (
-              <p role="alert" className="text-xs text-destructive">
+              <p role="alert" className="text-xs text-[#DC3545]">
                 {form.formState.errors.name.message}
               </p>
             )}
@@ -87,10 +87,10 @@ export function LabelsEditor({
           <input
             type="color"
             aria-label="Label color"
-            className="size-8 cursor-pointer rounded-md border bg-transparent p-0.5"
+            className="size-8 cursor-pointer rounded-md border border-[#DEE2E6] bg-transparent p-0.5"
             {...form.register('color')}
           />
-          <Button type="submit" variant="outline" size="sm">
+          <Button type="submit" variant="outline" size="sm" className="border-[#DEE2E6]">
             Add
           </Button>
         </form>

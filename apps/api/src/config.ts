@@ -14,6 +14,21 @@ const schema = z.object({
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(30),
   COOKIE_SECURE: bool.default(false),
   RATE_LIMIT_ENABLED: bool.default(true),
+  /** Optional. When unset/empty (or NODE_ENV=test), invitation emails are skipped. */
+  RESEND_API_KEY: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().min(1).optional(),
+  ),
+  MAIL_FROM: z.string().min(3).default('DevSync <onboarding@resend.dev>'),
+  /** Optional. When set, domain events fan out across API nodes via Redis pub/sub. */
+  REDIS_URL: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().min(1).optional(),
+  ),
+  /** Directory for task attachment blobs (created on demand). */
+  ATTACHMENTS_DIR: z.string().min(1).default('.data/attachments'),
+  /** Max upload size in bytes (default 10 MiB). */
+  ATTACHMENTS_MAX_BYTES: z.coerce.number().int().positive().default(10 * 1024 * 1024),
 });
 
 export type Config = z.infer<typeof schema>;

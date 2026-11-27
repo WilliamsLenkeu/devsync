@@ -22,7 +22,7 @@ export function PasswordInput({ ref, id, disabled, className, ...props }: Compon
         aria-controls={id}
         disabled={disabled}
         onClick={() => setVisible((v) => !v)}
-        className="absolute inset-y-0 right-0 flex min-h-11 min-w-11 items-center justify-center rounded-r-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+        className="absolute top-1/2 right-0.5 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-[#6C757D] transition-colors duration-150 hover:text-[#212529] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#017E84]/40 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
       >
         {visible ? (
           <EyeOff className="size-4" aria-hidden />

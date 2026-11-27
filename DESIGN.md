@@ -1,63 +1,75 @@
-# DESIGN.md — DevSync (v3)
+# DESIGN.md — DevSync (v5 · Milk Desk)
 
-Sources (langage UI produit + landing 2025/26) :
-- Product chrome dense dark : hierarchy by brightness/hairlines (Linear/Plane observed patterns), one accent only.
-- Marketing : product-first, sticky canvas + scroll narrative (Graphite compact feature scroll, Vercel product tour, 2026 SaaS scroll demos). Motion serves beats, not decoration.
-- Différenciation : **pas** clone Linear indigo ; accent cuivre/ambre ; display Bricolage ; landing = **reel** scroll-pin avec screenshots réels.
+**Inspiré Odoo webclient « Milk » (v17+) + Material Design enterprise — pas un clone logo Odoo.**  
+Remplace Phosphor Ops (v4) et cuivre (v3).
+
+Références : [Odoo Brand Assets](https://www.odoo.com/page/brand-assets) · redesign Milk (primary CTA limité, control panel, 14px, badges) · Material surfaces / elevation / contained+outlined buttons.
 
 ## Scene
 
-Nuit bureau eng, moniteur board en focus. L’app est un **outil dense**. La landing est un **film produit** contrôlé au scroll.
+Bureau ops **clair**, grilles denses, control panel sticky, listes et boards lisibles. DevSync reste un outil collab eng — densité Odoo, pas landing cyber mint.
 
 ## Voice
 
-precise · kinetic · evidentiary (on montre l’UI réelle)
+clean · productive · guided (1 CTA primary clair par vue)
 
 ## Dials
 
 | Surface | ENERGY | RHYTHM | MOTION |
 | --- | --- | --- | --- |
-| Landing | 3 | 3 | 3 (GSAP pin + scrub reel) |
-| App | 2 | 2 | 1–2 (150–250 ms state) |
+| Landing | 3 | 3 | 3 (GSAP soft: staggers, pin léger) |
+| App | 2 | 3 | 2–3 (route fade, list stagger, sheet — pas carnival) |
 
-`prefers-reduced-motion` : pas de pin scrub ; sections empilées statiques avec screenshots visibles.
+`prefers-reduced-motion` : skip pin/scrub/staggers.
 
-## Color — Committed dark product
+## Color — Milk Desk (committed)
 
-| Token | Role |
-| --- | --- |
-| Canvas | Near-black froid `oklch(0.12 0.01 260)` |
-| Surface | Un cran plus clair, hairlines `oklch(1 0 0 / 8–12%)` |
-| Field (light mode) | Off-white chroma≈0 (pas cream) |
-| Accent | Cuivre/ambre signal (CTA, sélection, live) |
-| Danger / overdue | Rouge / ambre sémantiques |
+Produit **light-first** (comme Odoo UI post-purple). Teal = accent produit (équivalent rôle du secondary Odoo `#017E84` en primary UI — **pas** le mauve brand `#714B67` en chrome produit).
 
-Interdit : purple mesh, cream paper, border-left décoratif >1px, glow carnival.
+| Token | Role | Valeur |
+| --- | --- | --- |
+| Canvas / bg | Fond app | `#F8F9FA` |
+| Surface | Cards, sheets, sidebar | `#FFFFFF` |
+| Elevated | Menus, popovers | `#FFFFFF` + ombre Material soft |
+| Hairline | Borders | `#DEE2E6` / `rgba(0,0,0,.125)` |
+| Ink | Texte | `#212529` |
+| Muted | Secondaire | `#8F8F8F` (gray brand Odoo) |
+| **Primary** | CTA contained, sélection, tabs actifs | Teal `#017E84` |
+| Primary-fg | Sur primary | `#FFFFFF` |
+| Secondary btn | Outlined / filled soft | gray `#6C757D` bord + fond `#E9ECEF` |
+| Success / Info / Warn / Danger | Sémantique Material-ish | green / cyan / amber / `#DC3545` |
+| Dark mode (option) | Inversion soft | canvas `#1A1D21`, surface `#2B3035`, primary teal inchangé |
+
+Interdit : purple mesh UI, mauve `#714B67` comme fill chrome dominant, mint phosphor abyss, cuivre, glow carnival, cream paper chaud.
 
 ## Type
 
-- **UI + landing display** : Bricolage Grotesque Variable (caractère, hors Inter/Geist/Sora reflex).
-- **Mono** : JetBrains Mono (clés `WEB-12`).
-- Produit : texte compact 13–14px, tracking serré display.
+- **UI** : Inter (comme Odoo brand) 14px base, titres 500–700 lh 1, body 400 lh 1.5.
+- **Mono** : IBM Plex Mono ou JetBrains Mono pour clés techniques.
+- Densité : lisible type Odoo Milk (14px), pas micro-13 cuivre.
 
-## Motif
+## Layout & composants (langage Odoo)
 
-- Hairlines + contraste de luminosité (pas de cards flottantes).
-- Sync : accent ambre sur sélection / pip actif.
-- Marketing proof = **screenshots réels** `/screenshots/*.png`.
+1. **Control panel** : bandeau sous chrome — titre/breadcrumb à gauche, **peu** de boutons primary à droite, actions secondaires groupées (menu ⚙ / overflow).
+2. **Boutons** : 1–2 `primary` contained max par vue ; secondary plus visibles (outlined/filled soft) ; text buttons pour hyper-secondary.
+3. **Cards** : surface blanche, border légère, radius ~6–8px, elevation Material faible (1–2), pas de glass multi-shadow.
+4. **Badges** : pills compactes, palette lisible (statut kanban).
+5. **Tables / listes** : rows denses, hover soft gray, pas de cards pour chaque ligne.
+6. **Sidebar** : claire, icônes + labels, app switcher feel ; topbar fine.
+7. **Sheets / dialogs** : Material enter (GSAP scale+fade doux).
 
-## Landing structure (obligatoire)
+## Motion (GSAP — utile, pas déco)
 
-1. Hero dark : brand + promesse + CTAs
-2. **Reel pin** (scroll storytelling) : canvas sticky, scrub GSAP, chapitres Dashboard → Board → Live/roles, screenshots réels, progress
-3. Index capacités (grille dense, faits produit)
-4. CTA final
-5. Footer liens réels
+- Route : fade court (~200ms).
+- Listes/board : stagger léger à l’entrée.
+- Dialog/sheet : enter/leave GSAP.
+- Landing : staggers + scrub modéré.
+- Pas de magnetic glow / wipe cyber.
 
-## App
+## Landing
 
-Dark-first chrome, densité utile, listes/rows, empty = cause + action. MCP secondaire.
+Hero clair ou soft gradient gris→blanc, brand DevSync, promesse, CTA teal, preuve board/dashboard, footer liens.
 
 ## Design Read
 
-Reading as: eng-team collab tool (dense dark product) + cinematic product-reel marketing, dials landing ENERGY 3 / RHYTHM 3 / MOTION 3 · app ENERGY 2 / RHYTHM 2 / MOTION 1–2.
+Reading as: Odoo-Milk-inspired Material enterprise for eng collab — light surfaces, teal guided CTAs, control-panel hierarchy, GSAP restrained, dials app ENERGY 2 / RHYTHM 3 / MOTION 2–3.

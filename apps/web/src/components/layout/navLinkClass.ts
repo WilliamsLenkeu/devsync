@@ -1,14 +1,12 @@
 import { cn } from '@/lib/utils';
 
-/** Active nav: tinted surface + sync pip (DESIGN.md). No colored left stripe (impeccable ban). */
+/** Nav active : wash teal + poids medium (Milk Desk). Pas de stripe mauve. */
 export function navLinkClass(active: boolean): string {
   return cn(
-    'relative flex min-h-11 items-center gap-2 rounded-md px-2.5 text-sm outline-none transition-colors duration-150',
-    'focus-visible:ring-2 focus-visible:ring-ring',
+    'flex min-h-9 items-center gap-2.5 rounded-md px-2.5 text-sm outline-none transition-colors duration-150',
+    'focus-visible:ring-2 focus-visible:ring-ring/40',
     active
-      ? 'bg-sidebar-accent font-medium text-sidebar-foreground'
-      : 'border-transparent text-sidebar-foreground/75 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground',
-    active &&
-      "before:absolute before:left-1.5 before:top-1/2 before:size-1.5 before:-translate-y-1/2 before:rounded-full before:bg-primary before:content-[''] before:shadow-[0_0_0_3px_color-mix(in_oklch,var(--primary)_25%,transparent)] pl-5",
+      ? 'bg-sidebar-accent font-medium text-primary'
+      : 'font-normal text-sidebar-foreground/80 hover:bg-muted hover:text-sidebar-foreground',
   );
 }

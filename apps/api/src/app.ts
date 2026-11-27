@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
@@ -15,7 +16,8 @@ import {
 import type { Config } from './config';
 import { createPrisma, type Db } from './db';
 import { AppError, errorBody } from './errors';
-import { EventBus } from './events';
+import { createEventBus, type EventBus } from './events';
+import { createMailer, type Mailer } from './lib/mail';
 import { registerModules } from './modules';
 import { authPlugin } from './plugins/auth';
 
@@ -23,9 +25,13 @@ export interface BuildOptions {
   config: Config;
   /** Inject a client (tests); otherwise one is created from `config.DATABASE_URL` and closed with the app. */
   db?: Db;
+  /** Inject a mailer (tests); otherwise created from config (skipped when no Resend key / test). */
+  mailer?: Mailer;
+  /** Inject an event bus (tests); otherwise Local or Redis from `REDIS_URL`. */
+  events?: EventBus;
 }
 
-export async function buildApp({ config, db }: BuildOptions) {
+export async function buildApp({ config, db, mailer, events }: BuildOptions) {
   const app = Fastify({
     logger:
       config.NODE_ENV === 'test'
@@ -42,14 +48,20 @@ export async function buildApp({ config, db }: BuildOptions) {
   app.setSerializerCompiler(serializerCompiler);
 
   const ownsDb = !db;
+  const eventBus = events ?? (await createEventBus(config.REDIS_URL));
   app.decorate('config', config);
   app.decorate('db', db ?? createPrisma(config.DATABASE_URL));
-  app.decorate('events', new EventBus());
+  app.decorate('events', eventBus);
+  app.decorate('mailer', mailer ?? createMailer(config, app.log));
   if (ownsDb) app.addHook('onClose', async () => app.db.$disconnect());
+  app.addHook('onClose', async () => eventBus.close());
 
   await app.register(helmet, { contentSecurityPolicy: false });
   await app.register(cors, { origin: config.WEB_ORIGIN, credentials: true });
   await app.register(cookie);
+  await app.register(multipart, {
+    limits: { fileSize: config.ATTACHMENTS_MAX_BYTES, files: 1 },
+  });
   if (config.RATE_LIMIT_ENABLED)
     await app.register(rateLimit, { max: 300, timeWindow: '1 minute' });
 

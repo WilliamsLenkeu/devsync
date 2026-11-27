@@ -14,7 +14,7 @@ export function ProjectActivity({ projectId }: { projectId: string }) {
 
   if (activity.isPending) {
     return (
-      <ul className="divide-y divide-border" aria-busy="true" aria-label="Loading activity">
+      <ul className="divide-y divide-[#DEE2E6]" aria-busy="true" aria-label="Loading activity">
         {[0, 1, 2, 3].map((i) => (
           <li key={i} className="flex items-center gap-2.5 py-2.5">
             <Skeleton className="size-6 rounded-full" />
@@ -48,7 +48,7 @@ export function ProjectActivity({ projectId }: { projectId: string }) {
 
   return (
     <div>
-      <ul className="divide-y divide-border">
+      <ul className="divide-y divide-[#DEE2E6]">
         {items.map((item) => (
           <ActivityItem key={item.id} activity={item} />
         ))}
@@ -58,6 +58,7 @@ export function ProjectActivity({ projectId }: { projectId: string }) {
           <Button
             variant="outline"
             size="sm"
+            className="border-[#DEE2E6]"
             onClick={() => void activity.fetchNextPage()}
             disabled={activity.isFetchingNextPage}
           >
